@@ -1,12 +1,11 @@
 package minivmm
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strconv"
 
 	"github.com/pkg/errors"
 )
