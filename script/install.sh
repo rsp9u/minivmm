@@ -2,6 +2,8 @@
 BIN=/usr/local/bin/minivmm
 USR=minivmm
 
+os=$(uname -s | tr '[:upper:]' '[:lower:]')
+arch=$(uname -m | awk '{ if($1=="aarch64_be"||$1=="aarch64"||$1=="armv8b"||$1=="armv8l") {print "arm64"} else {print "amd64"} }')
 export VMM_DIR=${VMM_DIR:-/opt/minivmm}
 export VMM_AGENTS=${VMM_AGENTS:-}
 export VMM_ORIGIN=${VMM_ORIGIN:-}
@@ -16,7 +18,7 @@ if [ "$VMM_UPDATE" != "" ]; then
 fi
 
 # Retrieve binary
-sudo curl -Lo $BIN https://github.com/rsp9u/minivmm/releases/download/$VMM_VERSION/minivmm
+sudo curl -Lo $BIN https://github.com/rsp9u/minivmm/releases/download/$VMM_VERSION/minivmm_${os}_${arch}
 sudo chmod +x $BIN
 sudo setcap 'CAP_NET_BIND_SERVICE,CAP_NET_RAW=+eip' $BIN
 
