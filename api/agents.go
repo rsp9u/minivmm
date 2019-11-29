@@ -26,11 +26,26 @@ func HandleAgents(w http.ResponseWriter, r *http.Request) {
 // ListAgents returns a list of agent defined in environment variable.
 func ListAgents(w http.ResponseWriter, r *http.Request) {
 	agents := []*agent{}
-	for _, a := range strings.Split(os.Getenv(minivmm.EnvAgents), ",") {
-		name := strings.Split(a, "=")[0]
-		api := strings.Split(a, "=")[1]
-		agents = append(agents, &agent{name, api})
+	definedSelf := false
+
+	hostname, _ := os.Hostname()
+	envAgents := os.Getenv(minivmm.EnvAgents)
+	if envAgents != "" {
+		for _, a := range strings.Split(envAgents, ",") {
+			name := strings.Split(a, "=")[0]
+			api := strings.Split(a, "=")[1]
+			agents = append(agents, &agent{name, api})
+			if name == hostname {
+				definedSelf = true
+			}
+		}
 	}
+
+	if !definedSelf {
+		api := os.Getenv(minivmm.EnvOrigin) + "/api/v1/"
+		agents = append(agents, &agent{hostname, api})
+	}
+
 	ret := map[string][]*agent{"agents": agents}
 	b, _ := json.Marshal(ret)
 	w.Write(b)
