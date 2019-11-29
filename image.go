@@ -11,11 +11,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var (
-	vsizeRegexp = regexp.MustCompile(`virtual size: ([0-9.]+) (([A-Z]i)?B) \(.*\)`)
-	dsizeRegexp = regexp.MustCompile(`disk size: ([0-9.]+) (([A-Z]i)?B)`)
-)
-
 // ListBaseImages returns a list of base images from file system.
 func ListBaseImages() []string {
 	d, _ := os.Open(ImageDir)
@@ -69,55 +64,21 @@ func ResizeImage(name, size, dstDir string) error {
 }
 
 func checkImageSize(path string) error {
-	params := [][]string{{"qemu-img", "info", path}}
+	params := [][]string{{"qemu-img", "info", "--output", "json", path}}
 	stdouts, err := ExecsStdout(params)
 	if err != nil {
 		return err
 	}
 
-	m := vsizeRegexp.FindAllStringSubmatch(stdouts[0], -1)
-	if len(m) < 1 || len(m[0]) < 3 {
-		return errors.New("invalid command result: not found expected virtual size line")
+	var imageInfo struct {
+		VirtualSize string `json:"virtual-size"`
+		ActualSize  string `json:"actual-size"`
 	}
-	vsize, err := convertSISize(m[0][1], m[0][2])
-	if err != nil {
-		return err
-	}
+	json.Unmarshal([]byte(stdouts[0]), &imageInfo)
 
-	m = dsizeRegexp.FindAllStringSubmatch(stdouts[0], -1)
-	if len(m) < 1 || len(m[0]) < 3 {
-		return errors.New("invalid command result: not found expected disk size line")
-	}
-	dsize, _ := convertSISize(m[0][1], m[0][2])
-
-	if vsize < dsize {
+	if imageInfo.VirtualSize < imageInfo.ActualSize {
 		return errors.New("the given virtual disk size is smaller than base size")
 	}
 
 	return nil
-}
-
-func convertSISize(value, unit string) (int, error) {
-	s, err := strconv.Atoi(value)
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to convert disk size value: "+value)
-	}
-
-	if unit == "B" {
-		return s, nil
-	}
-	if unit == "KiB" {
-		return s * 1024, nil
-	}
-	if unit == "MiB" {
-		return s * 1024 * 1024, nil
-	}
-	if unit == "GiB" {
-		return s * 1024 * 1024 * 1024, nil
-	}
-	if unit == "TiB" {
-		return s * 1024 * 1024 * 1024 * 1024, nil
-	}
-
-	return 0, errors.New("not supported unit: " + unit)
 }
