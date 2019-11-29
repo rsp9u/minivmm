@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	vsizeRegexp = regexp.MustCompile(`virtual size: ([0-9]+) (([A-Z]i)?B) \(.*\)`)
-	dsizeRegexp = regexp.MustCompile(`disk size: ([0-9]+) (([A-Z]i)?B)`)
+	vsizeRegexp = regexp.MustCompile(`virtual size: ([0-9.]+) (([A-Z]i)?B) \(.*\)`)
+	dsizeRegexp = regexp.MustCompile(`disk size: ([0-9.]+) (([A-Z]i)?B)`)
 )
 
 // ListBaseImages returns a list of base images from file system.
