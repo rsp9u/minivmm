@@ -1,0 +1,33 @@
+---
+kind: pipeline
+name: default
+
+steps:
+- name: build webui
+  image: node:12.13.0-stretch
+  commands:
+  - make web/dist
+
+- name: build
+  image: golang:1.13
+  commands:
+  - make
+
+- name: make release
+  image: alpine
+  commands:
+  - mkdir -p release
+  - cp bin/minivmm release/minivmm
+  - cp script/install.sh release/install.sh
+  - cp script/uninstall.sh release/uninstall.sh
+
+- name: github release
+  image: plugins/github-release
+  settings:
+    api_key:
+      from_secret: github_api_key
+    files: release/*
+    checksum:
+    - md5
+  when:
+    event: tag
