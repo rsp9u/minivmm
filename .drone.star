@@ -34,7 +34,7 @@ def main(ctx):
 
 def build(os, arch):
   return {
-    "name": "build",
+    "name": "build %s-%s" % (os, arch),
     "image": "golang:1.13",
     "commands": [
 	  "GOOS=%s GOARCH=%s make" % (os, arch),
