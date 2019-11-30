@@ -3,12 +3,17 @@
 ### sso platform
 - OIDC Provider (tested with `hydra`)
 
-### yum
-- `qemu-system-x86`
-- `qemu-img`
-- `seabios`
-- `iproute`
-- `genisoimage`
+### packages
+
+#### yum
+```
+# yum install qemu-system-x86 qemu-img seabios iproute genisoimage
+```
+
+#### pacman
+```
+# pacman -Sy qemu seabios iproute2 cdrkit
+```
 
 # Getting started
 
