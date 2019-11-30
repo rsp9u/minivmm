@@ -37,7 +37,7 @@ sudo mkdir -p $VMM_DIR
 sudo chown -R $USR:$USR $VMM_DIR
 
 # Register to systemd
-sudo cat << EOS > $VMM_DIR/minivmm.environment
+cat << EOS | sudo tee $VMM_DIR/minivmm.environment
 VMM_DIR=${VMM_DIR}
 VMM_AGENTS=${VMM_AGENTS}
 VMM_ORIGIN=${VMM_ORIGIN}
