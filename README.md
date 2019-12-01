@@ -57,15 +57,15 @@ Put `server.crt` and `server.key` into `${VMM_DIR}`.
 
 # Environments
 
-| Name                     | Required(ui) | Requirements(no-ui) | Default        | Description                                                         |
-|--------------------------|--------------|---------------------|----------------|---------------------------------------------------------------------|
-| VMM_DIR                  | yes          | yes                 | '/opt/minivmm' | base directory path to store state files                            |
-| VMM_ORIGIN               | yes          |                     |                | origin url of minivmm server                                        |
-| VMM_OIDC_URL             | yes          |                     |                | oidc auth url                                                       |
-| VMM_LISTEN_PORT          | yes          | yes                 | '14151'        | listen port                                                         |
-| VMM_AGENTS               | yes          |                     |                | agents' API endpoint (comma separated)                              |
-| VMM_CORS_ALLOWED_ORIGINS |              | yes                 |                | allowed origin urls (comma separated)                               |
-| VMM_NAME_SERVERS         | yes          | yes                 |                | domain name servers' address sent via DHCP server (comma separated) |
-| VMM_NO_TLS               |              |                     |                | disable tls if set "1" or "true"                                    |
-| VMM_NO_AUTH              |              |                     |                | skip API authentication if set "1" or "true"                        |
-| VMM_NO_KVM               |              |                     |                | disable kvm if set "1" or "true"                                    |
+| Name                     | Required(ui) | Required(no-ui) | Default        | Description                                                         |
+|--------------------------|--------------|-----------------|----------------|---------------------------------------------------------------------|
+| VMM_DIR                  | yes          | yes             | '/opt/minivmm' | base directory path to store state files                            |
+| VMM_ORIGIN               | yes          |                 |                | origin url of minivmm server                                        |
+| VMM_OIDC_URL             | yes          |                 |                | oidc auth url                                                       |
+| VMM_LISTEN_PORT          | yes          | yes             | '14151'        | listen port                                                         |
+| VMM_AGENTS               | yes          |                 |                | agents' API endpoint (comma separated)                              |
+| VMM_CORS_ALLOWED_ORIGINS |              | yes             |                | allowed origin urls (comma separated)                               |
+| VMM_NAME_SERVERS         | yes          | yes             |                | domain name servers' address sent via DHCP server (comma separated) |
+| VMM_NO_TLS               |              |                 |                | disable tls if set "1" or "true"                                    |
+| VMM_NO_AUTH              |              |                 |                | skip API authentication if set "1" or "true"                        |
+| VMM_NO_KVM               |              |                 |                | disable kvm if set "1" or "true"                                    |
