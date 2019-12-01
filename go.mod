@@ -3,6 +3,7 @@ module minivmm
 go 1.12
 
 require (
+	github.com/gofrs/flock v0.7.1
 	github.com/krolaw/dhcp4 v0.0.0-20190909130307-a50d88189771
 	github.com/pkg/errors v0.8.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
