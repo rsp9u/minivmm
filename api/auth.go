@@ -45,7 +45,8 @@ func AuthMiddleware(next http.Handler) http.Handler {
 }
 
 func auth(r *http.Request) (bool, *http.Request) {
-	if os.Getenv(minivmm.EnvNoAuth) != "" {
+	envNoAuth := os.Getenv(minivmm.EnvNoAuth)
+	if envNoAuth == "1" || envNoAuth == "true" {
 		newCtx := minivmm.SetUserName(r, "dummy.user")
 		newReq := r.WithContext(newCtx)
 		return true, newReq

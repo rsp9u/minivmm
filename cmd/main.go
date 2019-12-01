@@ -88,10 +88,11 @@ func server() {
 	go minivmm.UpdateIPAddress()
 
 	log.Println("Starting minivm..")
-	if os.Getenv(minivmm.EnvTLS) == "yes" {
-		log.Fatal(http.ListenAndServeTLS(":"+os.Getenv(minivmm.EnvPort), serverCert, serverKey, handler))
-	} else {
+	envNoTLS := os.Getenv(minivmm.EnvNoTLS)
+	if envNoTLS == "1" || envNoTLS == "true" {
 		log.Fatal(http.ListenAndServe(":"+os.Getenv(minivmm.EnvPort), handler))
+	} else {
+		log.Fatal(http.ListenAndServeTLS(":"+os.Getenv(minivmm.EnvPort), serverCert, serverKey, handler))
 	}
 }
 

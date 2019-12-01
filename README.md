@@ -61,9 +61,9 @@ Put `server.crt` and `server.key` into `${VMM_DIR}`.
 * VMM_ORIGIN: origin url of minivmm server
 * VMM_OIDC_URL: oidc auth url
 * VMM_LISTEN_PORT: listen port
-* VMM_NO_AUTH: skip API authentication if this value is not empty
-* VMM_USE_TLS: enable tls if this value equals "yes"
 * VMM_AGENTS: agents' API endpoint (comma separated)
 * VMM_CORS_ALLOWED_ORIGINS: allowed origin urls (comma separated)
 * VMM_NAME_SERVERS: domain name servers' address sent via DHCP server (comma separated)
+* VMM_NO_TLS: disable tls if set "1" or "true"
+* VMM_NO_AUTH: skip API authentication if set "1" or "true"
 * VMM_NO_KVM: disable kvm if set "1" or "true"
