@@ -5,13 +5,7 @@ USR=minivmm
 os=$(uname -s | tr '[:upper:]' '[:lower:]')
 arch=$(uname -m | awk '{ if($1=="aarch64_be"||$1=="aarch64"||$1=="armv8b"||$1=="armv8l") {print "arm64"} else {print "amd64"} }')
 export VMM_DIR=${VMM_DIR:-/opt/minivmm}
-export VMM_AGENTS=${VMM_AGENTS:-}
-export VMM_ORIGIN=${VMM_ORIGIN:-}
-export VMM_OIDC_URL=${VMM_OIDC_URL:-}
 export VMM_LISTEN_PORT=${VMM_LISTEN_PORT:-14151}
-export VMM_USE_TLS=${VMM_USE_TLS:-yes}
-export VMM_CORS_ALLOWED_ORIGINS=${VMM_CORS_ALLOWED_ORIGINS:-}
-export VMM_NAME_SERVERS=${VMM_NAME_SERVERS:-}
 
 if [ "$VMM_UPDATE" != "" ]; then
   sudo systemctl stop minivmm.service
@@ -39,13 +33,15 @@ sudo chown -R $USR:$USR $VMM_DIR
 # Register to systemd
 cat << EOS | sudo tee $VMM_DIR/minivmm.environment
 VMM_DIR=${VMM_DIR}
-VMM_AGENTS=${VMM_AGENTS}
 VMM_ORIGIN=${VMM_ORIGIN}
 VMM_OIDC_URL=${VMM_OIDC_URL}
 VMM_LISTEN_PORT=${VMM_LISTEN_PORT}
-VMM_USE_TLS=${VMM_USE_TLS}
+VMM_AGENTS=${VMM_AGENTS}
 VMM_CORS_ALLOWED_ORIGINS=${VMM_CORS_ALLOWED_ORIGINS}
 VMM_NAME_SERVERS=${VMM_NAME_SERVERS}
+VMM_NO_TLS=${VMM_NO_TLS}
+VMM_NO_AUTH=${VMM_NO_AUTH}
+VMM_NO_KVM=${VMM_NO_KVM}
 EOS
 sudo chown $USR:$USR $VMM_DIR/minivmm.environment
 
