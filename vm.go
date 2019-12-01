@@ -16,6 +16,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/gofrs/flock"
 	"github.com/pkg/errors"
 	"github.com/yaamai/govmm/qemu"
 )
@@ -132,7 +133,7 @@ func generateQemuParams(qmpSocketPath, driveFilePath, cloudInitISOPath, vmMACAdd
 	envNoKvm := os.Getenv(EnvNoKvm)
 	if !(envNoKvm == "1" || envNoKvm == "true") {
 		params = append(params, "--enable-kvm")
-	    params = append(params, "-cpu", "host")
+		params = append(params, "-cpu", "host")
 	}
 
 	params = append(params, "-drive", fmt.Sprintf("file=%s,if=virtio,cache=none,aio=threads,format=qcow2", driveFilePath))
@@ -266,7 +267,22 @@ func saveVMMetaData(name string, metaData *VMMetaData) error {
 		return err
 	}
 	defer f.Close()
-	f.Write(metaDataByte)
+
+	// NOTE: the lock file will not be removed.
+	fileLock := flock.New(filepath.Join(vmDataDir, vmMetaDataFileName+".lock"))
+	lockCtx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	locked, err := fileLock.TryLockContext(lockCtx, 200*time.Millisecond)
+	if err != nil {
+		return err
+	}
+	if locked {
+		f.Write(metaDataByte)
+		err = fileLock.Unlock()
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
