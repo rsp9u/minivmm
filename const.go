@@ -10,20 +10,20 @@ const (
 	EnvDir = "VMM_DIR"
 	// EnvPort is a environment variable key.
 	EnvPort = "VMM_LISTEN_PORT"
-	// EnvTLS is a environment variable key.
-	EnvTLS = "VMM_USE_TLS"
 	// EnvOrigin is a environment variable key.
 	EnvOrigin = "VMM_ORIGIN"
 	// EnvOIDC is a environment variable key.
 	EnvOIDC = "VMM_OIDC_URL"
 	// EnvAgents is a environment variable key.
 	EnvAgents = "VMM_AGENTS"
-	// EnvNoAuth is a environment variable key.
-	EnvNoAuth = "VMM_NO_AUTH"
 	// EnvCorsOrigins is a environment variable key.
 	EnvCorsOrigins = "VMM_CORS_ALLOWED_ORIGINS"
 	// EnvNameServers is a environment variable key.
 	EnvNameServers = "VMM_NAME_SERVERS"
+	// EnvNoTLS is a environment variable key.
+	EnvNoTLS = "VMM_NO_TLS"
+	// EnvNoAuth is a environment variable key.
+	EnvNoAuth = "VMM_NO_AUTH"
 	// EnvNoKvm is a environment variable key.
 	EnvNoKvm = "VMM_NO_KVM"
 )
