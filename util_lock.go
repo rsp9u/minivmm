@@ -8,7 +8,9 @@ import (
 	"github.com/gofrs/flock"
 )
 
-func writeWithLock(f *os.File, lockpath string, data []byte) error {
+// WriteWithLock writes the data to an opened file with file-lock.
+// If the other process keeps the lock, the file-lock will be time out in a second.
+func WriteWithLock(f *os.File, lockpath string, data []byte) error {
 	// NOTE: the lock file will not be removed.
 	fileLock := flock.New(lockpath)
 	lockCtx, cancel := context.WithTimeout(context.Background(), 1*time.Second)

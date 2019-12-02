@@ -197,7 +197,10 @@ func writeFile(fws []forward) error {
 	if err != nil {
 		return err
 	}
-	f.Write(b)
+
+	// NOTE: seriously, read lock is also needed.
+	lockpath := recordPath + ".lock"
+	minivmm.WriteWithLock(f, lockpath, b)
 
 	return nil
 }
