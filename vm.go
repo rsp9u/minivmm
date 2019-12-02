@@ -16,7 +16,6 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/gofrs/flock"
 	"github.com/pkg/errors"
 	"github.com/yaamai/govmm/qemu"
 )
@@ -268,20 +267,10 @@ func saveVMMetaData(name string, metaData *VMMetaData) error {
 	}
 	defer f.Close()
 
-	// NOTE: the lock file will not be removed.
-	fileLock := flock.New(filepath.Join(vmDataDir, vmMetaDataFileName+".lock"))
-	lockCtx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	defer cancel()
-	locked, err := fileLock.TryLockContext(lockCtx, 200*time.Millisecond)
+	lockpath := filepath.Join(vmDataDir, vmMetaDataFileName+".lock")
+	ert = writeWithLock(f, lockpath, metaDataByte)
 	if err != nil {
-		return err
-	}
-	if locked {
-		f.Write(metaDataByte)
-		err = fileLock.Unlock()
-		if err != nil {
-			return err
-		}
+		return ert
 	}
 
 	return nil
