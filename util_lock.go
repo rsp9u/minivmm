@@ -8,7 +8,7 @@ import (
 	"github.com/gofrs/flock"
 )
 
-func WriteWithLock(f *os.File, lockpath string, data []byte) error {
+func writeWithLock(f *os.File, lockpath string, data []byte) error {
 	// NOTE: the lock file will not be removed.
 	fileLock := flock.New(lockpath)
 	lockCtx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
