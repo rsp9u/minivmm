@@ -268,9 +268,9 @@ func saveVMMetaData(name string, metaData *VMMetaData) error {
 	defer f.Close()
 
 	lockpath := filepath.Join(vmDataDir, vmMetaDataFileName+".lock")
-	ert = writeWithLock(f, lockpath, metaDataByte)
+	err = writeWithLock(f, lockpath, metaDataByte)
 	if err != nil {
-		return ert
+		return err
 	}
 
 	return nil
