@@ -1,10 +1,14 @@
 package minivmm
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/pkg/errors"
@@ -202,7 +206,9 @@ func deleteIPChannel(name, id string) {
 }
 
 // StartForward starts new forwarding.
-func StartForward(id, proto, fromPort, toName, toPort string) error {
+func StartForward(proto, fromPort, toName, toPort string) error {
+	id := generateForwardID(proto, fromPort)
+
 	ch := make(chan struct{})
 	if proto == "udp" {
 		if err := isUDPBindable(fromPort); err != nil {
@@ -220,12 +226,56 @@ func StartForward(id, proto, fromPort, toName, toPort string) error {
 }
 
 // StopForward stop forwarding.
-func StopForward(id string) error {
+func StopForward(proto, fromPort string) error {
+	id := generateForwardID(proto, fromPort)
+
 	c, ok := stopChannels[id]
 	if !ok {
 		return fmt.Errorf("unknown forwarding: %s", id)
 	}
 	c <- struct{}{}
+	return nil
+}
+
+// ForwardMetaData is forwarding settings.
+type ForwardMetaData struct {
+	Owner       string `json:"owner"`
+	Hypervisor  string `json:"hypervisor"`
+	Proto       string `json:"proto"`
+	FromPort    string `json:"from_port"`
+	ToName      string `json:"to_name"`
+	ToPort      string `json:"to_port"`
+	Type        string `json:"type"`
+	Description string `json:"description"`
+}
+
+func generateForwardID(proto, fromPort string) string {
+	return proto + "-" + fromPort
+}
+
+// ResumeForwards resumes forwardings from file.
+func ResumeForwards() error {
+	// get existing VM's addresses
+	vms, err := ListVMs()
+	if err != nil {
+		return err
+	}
+	for _, vm := range vms {
+		UpdateIPAddressInForwarder(vm.Name, vm.IPAddress)
+	}
+
+	// resume forwards
+	fws, err := ReadAllForwardFiles()
+	if err != nil {
+		return err
+	}
+	for _, f := range fws {
+		err := StartForward(f.Proto, f.FromPort, f.ToName, f.ToPort)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -240,4 +290,64 @@ func UpdateIPAddressInForwarder(name, ip string) {
 	for _, c := range channels {
 		c <- struct{}{}
 	}
+}
+
+// WriteForwardFile creates or updates the forwarding settings file.
+// The file name will be joined string of protocol and listen port.
+func WriteForwardFile(fw *ForwardMetaData) error {
+	recordPath := filepath.Join(ForwardDir, generateForwardID(fw.Proto, fw.FromPort)+".json")
+
+	f, err := os.OpenFile(recordPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	b, err := json.Marshal(fw)
+	if err != nil {
+		return err
+	}
+
+	lockpath := recordPath + ".lock"
+	WriteWithLock(f, lockpath, b)
+
+	return nil
+}
+
+// RemoveForwardFile removes a forwarding settings file.
+func RemoveForwardFile(fw *ForwardMetaData) error {
+	recordPath := filepath.Join(ForwardDir, generateForwardID(fw.Proto, fw.FromPort)+".json")
+	return os.Remove(recordPath)
+}
+
+// ReadAllForwardFiles returns a list of forwarding settings.
+func ReadAllForwardFiles() ([]*ForwardMetaData, error) {
+	dirEntries, err := ioutil.ReadDir(ForwardDir)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret []*ForwardMetaData
+	for _, f := range dirEntries {
+		if !f.IsDir() {
+			fw, err := readForwardFile(f.Name())
+			if err != nil {
+				log.Println("Ignore ReadForwardFile error:", err)
+				continue
+			}
+			ret = append(ret, fw)
+		}
+	}
+
+	return ret, nil
+}
+
+func readForwardFile(id string) (*ForwardMetaData, error) {
+	fw := ForwardMetaData{}
+	b, err := ioutil.ReadFile(filepath.Join(ForwardDir, id))
+	if err != nil {
+		return nil, err
+	}
+	json.Unmarshal(b, &fw)
+	return &fw, nil
 }

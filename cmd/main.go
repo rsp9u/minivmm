@@ -121,7 +121,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = api.ResumeForwards()
+	err = minivmm.ResumeForwards()
 	if err != nil {
 		log.Fatal(err)
 	}
