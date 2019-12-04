@@ -48,10 +48,7 @@ func ListForwards(w http.ResponseWriter, r *http.Request) {
 	// read forward list from file
 	forwards, err := minivmm.ReadAllForwardFiles()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		ret := map[string]string{"error": err.Error()}
-		b, _ := json.Marshal(ret)
-		w.Write(b)
+		writeInternalServerError(err, w)
 		return
 	}
 
@@ -78,19 +75,13 @@ func CreateForward(w http.ResponseWriter, r *http.Request) {
 
 	err := minivmm.StartForward(f.Proto, f.FromPort, f.ToName, f.ToPort)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		ret := map[string]string{"error": err.Error()}
-		b, _ := json.Marshal(ret)
-		w.Write(b)
+		writeInternalServerError(err, w)
 		return
 	}
 
 	err = minivmm.WriteForwardFile(f)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		ret := map[string]string{"error": err.Error()}
-		b, _ := json.Marshal(ret)
-		w.Write(b)
+		writeInternalServerError(err, w)
 		return
 	}
 }
@@ -101,19 +92,13 @@ func DeleteForward(w http.ResponseWriter, r *http.Request) {
 
 	err := minivmm.StopForward(f.Proto, f.FromPort)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		ret := map[string]string{"error": err.Error()}
-		b, _ := json.Marshal(ret)
-		w.Write(b)
+		writeInternalServerError(err, w)
 		return
 	}
 
 	err = minivmm.RemoveForwardFile(f)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		ret := map[string]string{"error": err.Error()}
-		b, _ := json.Marshal(ret)
-		w.Write(b)
+		writeInternalServerError(err, w)
 		return
 	}
 }

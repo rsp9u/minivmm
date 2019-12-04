@@ -57,10 +57,7 @@ func HandleVMs(w http.ResponseWriter, r *http.Request) {
 func ListVMs(w http.ResponseWriter, r *http.Request) {
 	vmMetaData, err := minivmm.ListVMs()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		ret := map[string]string{"error": err.Error()}
-		b, _ := json.Marshal(ret)
-		w.Write(b)
+		writeInternalServerError(err, w)
 		return
 	}
 
@@ -104,10 +101,7 @@ func CreateVM(w http.ResponseWriter, r *http.Request) {
 
 	metaData, err := minivmm.CreateVM(v.Name, minivmm.GetUserName(r), v.Image, v.CPU, v.Memory, v.Disk, v.UserData, v.Tag)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		ret := map[string]string{"error": err.Error()}
-		b, _ := json.Marshal(ret)
-		w.Write(b)
+		writeInternalServerError(err, w)
 		return
 	}
 
@@ -139,10 +133,7 @@ func UpdateVM(w http.ResponseWriter, r *http.Request) {
 			err = minivmm.StopVM(vmName)
 		}
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			ret := map[string]string{"error": err.Error()}
-			b, _ := json.Marshal(ret)
-			w.Write(b)
+			writeInternalServerError(err, w)
 			return
 		}
 	}
@@ -150,10 +141,7 @@ func UpdateVM(w http.ResponseWriter, r *http.Request) {
 	if v.CPU != "" || v.Memory != "" || v.Disk != "" {
 		metaData, err := resizeVM(vmName, &v)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			ret := map[string]string{"error": err.Error()}
-			b, _ := json.Marshal(ret)
-			w.Write(b)
+			writeInternalServerError(err, w)
 			return
 		}
 
@@ -168,10 +156,7 @@ func RemoveVM(w http.ResponseWriter, r *http.Request) {
 	vmName := paths[len(paths)-1]
 	err := minivmm.RemoveVM(vmName)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		ret := map[string]string{"error": err.Error()}
-		b, _ := json.Marshal(ret)
-		w.Write(b)
+		writeInternalServerError(err, w)
 		return
 	}
 
