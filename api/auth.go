@@ -21,6 +21,7 @@ import (
 const (
 	clientID     = "minivmm"
 	clientSecret = "minivmmminivmm"
+	cookieName   = "minivmm_token"
 )
 
 type jwtPayload struct {
@@ -36,10 +37,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		if isAuth || r.Method == "OPTIONS" {
 			next.ServeHTTP(w, r)
 		} else {
-			w.WriteHeader(http.StatusUnauthorized)
-			ret := map[string]string{"error": "Unauthorized", "oidc_url": os.Getenv(minivmm.EnvOIDC)}
-			b, _ := json.Marshal(ret)
-			w.Write(b)
+			redirectToAuthURL(w, r)
 		}
 	})
 }
@@ -52,13 +50,11 @@ func auth(r *http.Request) (bool, *http.Request) {
 		return true, newReq
 	}
 
-	a := r.Header.Get("Authorization")
-	if a == "" {
+	cookie, err := r.Cookie(cookieName)
+	if err != nil {
 		return false, r
 	}
-
-	s := strings.Split(a, " ")
-	token := s[1]
+	token := cookie.Value
 
 	// Check client ID and signature of access token
 	payload, err := extractJWTPayload(token)
@@ -92,8 +88,27 @@ func auth(r *http.Request) (bool, *http.Request) {
 	return true, newReq
 }
 
+func redirectToAuthURL(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	oauth2Config, _, _, err := setupOIDCProvider(ctx)
+	if err != nil {
+		writeInternalServerError(err, w)
+		return
+	}
+	state := "dummy-state"
+	http.Redirect(w, r, oauth2Config.AuthCodeURL(state), http.StatusFound)
+}
+
+// HandleAuth redirects to the main page if authentication is successful.
+func HandleAuth(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, os.Getenv(minivmm.EnvOrigin), 302)
+}
+
 // HandleOIDCCallback obtains and verifies OIDC tokens, and set the access token to client.
 func HandleOIDCCallback(w http.ResponseWriter, r *http.Request) {
+	// NOTE: skip state verification because this service does not store the private resources.
+
 	_, accessToken, err := generateToken(r.URL.Query().Get("code"))
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -124,7 +139,7 @@ func generateToken(authCode string) (*oidc.IDToken, string, error) {
 	defer cancel()
 	oauth2Token, err := oauth2Config.Exchange(ctx, authCode)
 	if err != nil {
-		return nil, "", errors.New("Failed to fetch token from OIDC provider")
+		return nil, "", errors.Wrap(err, "Failed to fetch token from OIDC provider")
 	}
 
 	// Extract the ID Token from OAuth2 token.

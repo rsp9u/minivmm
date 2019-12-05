@@ -112,7 +112,6 @@ export default {
         }
         const ep = this.getAgentEndpoint(this.targetHypervisor);
         if (ep !== "") {
-          util.ensureAxiosAuth();
           axios
             .get(ep + "images")
             .then(
