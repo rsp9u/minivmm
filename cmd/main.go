@@ -69,7 +69,7 @@ func server() {
 		log.Println("Into ui mode..")
 		fs, _ := fs.New()
 		defaultedFileSystem := DefaultedFileSystem{fs: fs, DefaultPath: "/index.html"}
-		mux.Handle("/", http.StripPrefix("/", http.FileServer(defaultedFileSystem)))
+		mux.Handle("/", api.AuthMiddleware(http.StripPrefix("/", http.FileServer(defaultedFileSystem))))
 	} else {
 		log.Println("Into non-ui mode..")
 	}

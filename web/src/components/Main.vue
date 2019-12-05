@@ -50,7 +50,6 @@ export default {
   methods: {
     // Agent
     async getAgents() {
-      util.ensureAxiosAuth();
       const response = await axios.get(
         util.locationOrigin() + "/api/v1/agents"
       );
@@ -58,7 +57,6 @@ export default {
     },
     // VM
     async getVMs(apiEndpoint) {
-      util.ensureAxiosAuth();
       try {
         const response = await axios.get(apiEndpoint + "vms");
         const ipUpdated = response.data.vms.map(vm =>
@@ -86,7 +84,6 @@ export default {
     },
     // Forward
     async getForwards(apiEndpoint) {
-      util.ensureAxiosAuth();
       try {
         const response = await axios.get(apiEndpoint + "forwards");
         return response.data.forwards;

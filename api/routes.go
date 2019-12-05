@@ -8,7 +8,7 @@ import (
 func RegisterHandlers(mux *http.ServeMux) {
 	prefix := "/api/v1"
 
-	registerWithAuth(mux, prefix+"/auth", func(w http.ResponseWriter, r *http.Request) {})
+	registerWithAuth(mux, prefix+"/auth", HandleAuth)
 	registerWithAuth(mux, prefix+"/agents", HandleAgents)
 	registerWithAuth(mux, prefix+"/vms", HandleVMs)
 	registerWithAuth(mux, prefix+"/vms/", HandleVMs)
