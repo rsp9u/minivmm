@@ -18,7 +18,7 @@
                     v-col(cols="12")
                       v-text-field(v-model="editedVM.name" :rules="[rules.max]" @update:error="nameError" label="name")
                     v-col(cols="12")
-                      v-select(v-model="targetHypervisor" :items="agentNames" label="hypervisor")
+                      v-select(v-model="editedVM.hypervisor" :items="agentNames" label="hypervisor" @change="updateImages")
                     v-col(cols="12")
                       v-select(v-model="editedVM.image" :items="images" label="image")
                     v-col(cols="12" md="4")
@@ -89,7 +89,6 @@ export default {
       vncPassword: "",
       vncPopup: false,
       editedVM: { name: "" },
-      targetHypervisor: "",
       images: [],
       menuItems: menuItems,
       rules: {
@@ -103,36 +102,32 @@ export default {
       return this.agents.map(x => x.name);
     }
   },
-  watch: {
-    targetHypervisor: {
-      handler: function() {
-        if (this.hypervisor === "") {
-          this.images = [];
-          return;
-        }
-        const ep = this.getAgentEndpoint(this.targetHypervisor);
-        if (ep !== "") {
-          axios
-            .get(ep + "images")
-            .then(
-              response => (this.images = response.data.images.map(x => x.name))
-            );
-        }
-      }
-    }
-  },
   methods: {
     clear() {
       this.editedVM = { name: "" };
-      this.targetHypervisor = "";
+      this.images = [];
       this.dialogVisible = false;
     },
     nameError(errorStatus) {
       this.invalidVM = errorStatus;
     },
 
+    updateImages() {
+      if (this.editedVM.hypervisor === "") {
+        this.images = [];
+        return;
+      }
+      const ep = this.getAgentEndpoint(this.editedVM.hypervisor);
+      if (ep !== "") {
+        axios
+          .get(ep + "images")
+          .then(
+            response => (this.images = response.data.images.map(x => x.name))
+          );
+      }
+    },
+
     createVM() {
-      this.editedVM.hypervisor = this.targetHypervisor;
       const ep = this.getAgentEndpoint(this.editedVM.hypervisor);
       if (ep === "") {
         alert("Unknown hypervisor.");
