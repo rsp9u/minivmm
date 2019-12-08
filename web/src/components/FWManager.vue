@@ -1,5 +1,5 @@
 <template lang="pug">
-  v-data-table(:headers="fwsHeaders" :items="fws")
+  v-data-table(:headers="fwsHeaders" :items="fwsView")
     template(v-slot:top)
       v-toolbar(flat)
         v-toolbar-title Forwards
@@ -58,14 +58,7 @@ export default {
   name: "FWManager",
   props: ["agents", "fws", "vms"],
   data() {
-    const fwHeaderList = [
-      "hypervisor",
-      "proto",
-      "from_port",
-      "to_name",
-      "to_port",
-      "description"
-    ];
+    const fwHeaderList = ["proto", "translation", "description"];
     let fwHeaders;
     fwHeaders = fwHeaderList.map(x => ({ text: x, value: x }));
     fwHeaders.push({ text: "link", value: "link", sortable: false });
@@ -87,6 +80,13 @@ export default {
     },
     vmNames() {
       return ["localhost"].concat(this.vms.map(x => x.name));
+    },
+    fwsView() {
+      return this.fws.map(origFw => {
+        var fw = Object.assign(origFw);
+        fw.translation = `${fw.hypervisor}:${fw.from_port} -> ${fw.to_name}:${fw.to_port}`;
+        return fw;
+      });
     }
   },
   methods: {
