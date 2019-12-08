@@ -25,7 +25,8 @@ def main(ctx):
         "image": "plugins/github-release",
         "settings": {
           "api_key": {"from_secret": "github_api_key"},
-          "files": "release/*"
+          "files": "release/*",
+		  "checksum": ["sha256"]
         },
         "when": {"event": "tag"}
       }
