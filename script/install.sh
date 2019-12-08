@@ -16,6 +16,13 @@ sudo curl -Lo $BIN https://github.com/rsp9u/minivmm/releases/download/$VMM_VERSI
 sudo chmod +x $BIN
 sudo setcap 'CAP_NET_BIND_SERVICE,CAP_NET_RAW=+eip' $BIN
 
+# verify checksum
+curl -Lo - https://github.com/rsp9u/minivmm/releases/download/$VMM_VERSION/sha256sum.txt | \
+  grep minivmm_${os}_${arch} | \
+  sed -e 's,release/'minivmm_${os}_${arch}','$BIN',' | \
+  sha256sum -c -
+if [ $? -ne 0 ]; then echo "failed to verify checksum.\nplease retry."; exit 1; fi
+
 if [ "$VMM_UPDATE" != "" ]; then
   sudo systemctl start minivmm.service
   exit 0
