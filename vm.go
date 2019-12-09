@@ -315,7 +315,7 @@ func createCloudInitISO(cloudInitFilesPath, isoPath, userData string) error {
 }
 
 // CreateVM creates new VM and starts it.
-func CreateVM(name, owner, imageName, cpu, memory, disk, userData, tag string) (*VMMetaData, retErr error) {
+func CreateVM(name, owner, imageName, cpu, memory, disk, userData, tag string) (ret *VMMetaData, retErr error) {
 	if exists(filepath.Join(VMDir, name, vmMetaDataFileName)) {
 		return nil, errors.Errorf("CreateVM: VM '%s' already exists", name)
 	}
