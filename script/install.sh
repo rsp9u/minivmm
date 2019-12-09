@@ -67,6 +67,7 @@ KillMode=process
 User=${USR}
 Group=${USR}
 EnvironmentFile=${VMM_DIR}/minivmm.environment
+ExecStartPre=${BIN} -init-nw
 ExecStart=${BIN} ${UI_ARG}
 ExecStop=/bin/pkill minivmm
 

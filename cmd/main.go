@@ -101,7 +101,7 @@ func main() {
 	if *initNw {
 		err := minivmm.InitNetns()
 		if err != nil {
-			panic(err)
+			log.Println(err)
 		}
 		return
 	}

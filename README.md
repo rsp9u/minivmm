@@ -27,7 +27,6 @@ $ export VMM_NAME_SERVERS="1.1.1.1,1.0.0.1"
 $ export VMM_INSTALL_UI=true
 $ export VMM_VERSION=...
 $ curl -Lo - https://github.com/rsp9u/minivmm/releases/download/$VMM_VERSION/install.sh | sh -
-$ sudo -u minivmm /usr/local/bin/minivmm -init-nw
 $ sudo systemctl start minivmm.service
 $ sudo iptables -t nat -A POSTROUTING -o eth1 -s 192.168.200.0/24 -j MASQUERADE
 ```
@@ -38,7 +37,6 @@ $ unset VMM_INSTALL_UI
 $ export VMM_CORS_ALLOWED_ORIGINS=https://hypervisor1.localdomain:14151
 $ export VMM_VERSION=...
 $ curl -Lo - https://github.com/rsp9u/minivmm/releases/download/$VMM_VERSION/install.sh | sh -
-$ sudo -u minivmm /usr/local/bin/minivmm -init-nw
 $ sudo systemctl start minivmm.service
 $ sudo iptables -t nat -A POSTROUTING -o eth1 -s 192.168.200.0/24 -j MASQUERADE
 ```
