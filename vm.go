@@ -315,10 +315,20 @@ func createCloudInitISO(cloudInitFilesPath, isoPath, userData string) error {
 }
 
 // CreateVM creates new VM and starts it.
-func CreateVM(name, owner, imageName, cpu, memory, disk, userData, tag string) (*VMMetaData, error) {
+func CreateVM(name, owner, imageName, cpu, memory, disk, userData, tag string) (*VMMetaData, retErr error) {
 	if exists(filepath.Join(VMDir, name, vmMetaDataFileName)) {
 		return nil, errors.Errorf("CreateVM: VM '%s' already exists", name)
 	}
+
+	defer func() {
+		if retErr != nil {
+			rmErr := os.RemoveAll(filepath.Join(VMDir, name))
+			if rmErr != nil {
+				log.Println("Ignore RemoveAll error:", rmErr)
+			}
+		}
+	}()
+
 
 	vmDataDir := filepath.Join(VMDir, name)
 	driveFilePath, err := CreateImage(name, disk, imageName, vmDataDir)
