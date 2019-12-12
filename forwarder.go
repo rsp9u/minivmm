@@ -297,7 +297,7 @@ func UpdateIPAddressInForwarder(name, ip string) {
 func WriteForwardFile(fw *ForwardMetaData) error {
 	recordPath := filepath.Join(ForwardDir, generateForwardID(fw.Proto, fw.FromPort)+".json")
 
-	f, err := os.OpenFile(recordPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	f, err := os.OpenFile(recordPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
