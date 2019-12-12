@@ -261,7 +261,7 @@ func saveVMMetaData(name string, metaData *VMMetaData) error {
 	vmDataDir := filepath.Join(VMDir, name)
 	os.MkdirAll(vmDataDir, os.ModePerm)
 	metaDataPath := filepath.Join(vmDataDir, vmMetaDataFileName)
-	f, err := os.OpenFile(metaDataPath, os.O_RDWR|os.O_CREATE, 0644)
+	f, err := os.OpenFile(metaDataPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
@@ -291,7 +291,7 @@ func loadVMMetaData(name string) (*VMMetaData, error) {
 func createCloudInitISO(cloudInitFilesPath, isoPath, userData string) error {
 	// write userdata
 	userDataPath := filepath.Join(cloudInitFilesPath, cloudInitUserDataFileName)
-	userDataFile, err := os.OpenFile(userDataPath, os.O_RDWR|os.O_CREATE, 0644)
+	userDataFile, err := os.OpenFile(userDataPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
@@ -301,7 +301,7 @@ func createCloudInitISO(cloudInitFilesPath, isoPath, userData string) error {
 	// write metadata
 	// maybe cloud-init require meta-data file exists
 	metaDataPath := filepath.Join(cloudInitFilesPath, cloudInitMetaDataFileName)
-	metaDataFile, err := os.OpenFile(metaDataPath, os.O_RDWR|os.O_CREATE, 0644)
+	metaDataFile, err := os.OpenFile(metaDataPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
