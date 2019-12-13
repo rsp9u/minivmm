@@ -1,6 +1,7 @@
 #!/bin/sh -ex
 BIN=/usr/local/bin/minivmm
 USR=minivmm
+CACHE_DIR=$HOME/.cache/minivmm
 
 os=$(uname -s | tr '[:upper:]' '[:lower:]')
 arch=$(uname -m | awk '{ if($1=="aarch64_be"||$1=="aarch64"||$1=="armv8b"||$1=="armv8l") {print "arm64"} else {print "amd64"} }')
@@ -12,7 +13,11 @@ if [ "$VMM_UPDATE" != "" ]; then
 fi
 
 # Retrieve binary
-sudo curl -Lo $BIN https://github.com/rsp9u/minivmm/releases/download/$VMM_VERSION/minivmm_${os}_${arch}
+if [ ! -f $CACHE_DIR/$VMM_VERSION/minivmm_${os}_${arch} ]; then
+  mkdir -p $CACHE_DIR/$VMM_VERSION
+  curl -Lo $CACHE_DIR/$VMM_VERSION/minivmm_${os}_${arch} https://github.com/rsp9u/minivmm/releases/download/$VMM_VERSION/minivmm_${os}_${arch}
+fi
+sudo mv $CACHE_DIR/$VMM_VERSION/minivmm_${os}_${arch} $BIN
 sudo chmod +x $BIN
 sudo setcap 'CAP_NET_BIND_SERVICE,CAP_NET_RAW=+eip' $BIN
 
@@ -30,7 +35,8 @@ fi
 
 # Setup service user
 grep -q $USR /etc/passwd || sudo useradd $USR -b $(dirname $VMM_DIR)
-echo "$USR ALL=(ALL) NOPASSWD:/sbin/ip" | sudo tee /etc/sudoers.d/$USR > /dev/null
+echo "Defaults:$USR !requiretty" | sudo tee /etc/sudoers.d/$USR > /dev/null
+echo "$USR ALL=(ALL) NOPASSWD:/sbin/ip" | sudo tee -a /etc/sudoers.d/$USR > /dev/null
 sudo chmod 440 /etc/sudoers.d/$USR
 
 # Setup data directory
