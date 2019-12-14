@@ -20,6 +20,10 @@ const (
 	EnvCorsOrigins = "VMM_CORS_ALLOWED_ORIGINS"
 	// EnvNameServers is a environment variable key.
 	EnvNameServers = "VMM_NAME_SERVERS"
+	// EnvServerCert is a environment variable key.
+	EnvServerCert = "VMM_SERVER_CERT"
+	// EnvServerKey is a environment variable key.
+	EnvServerKey = "VMM_SERVER_KEY"
 	// EnvNoTLS is a environment variable key.
 	EnvNoTLS = "VMM_NO_TLS"
 	// EnvNoAuth is a environment variable key.

@@ -22,8 +22,8 @@ var (
 )
 
 var (
-	serverCert         = filepath.Join(os.Getenv(minivmm.EnvDir), "server.crt")
-	serverKey          = filepath.Join(os.Getenv(minivmm.EnvDir), "server.key")
+	serverCert         = os.Getenv(minivmm.EnvServerCert)
+	serverKey          = os.Getenv(minivmm.EnvServerKey)
 	listenPort         = os.Getenv(minivmm.EnvPort)
 	corsAllowedOrigins = strings.Split(os.Getenv(minivmm.EnvCorsOrigins), ",")
 )
