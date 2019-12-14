@@ -17,7 +17,7 @@ os=$(uname -s | tr '[:upper:]' '[:lower:]')
 arch=$(uname -m | awk '{ if($1=="aarch64_be"||$1=="aarch64"||$1=="armv8b"||$1=="armv8l") {print "arm64"} else {print "amd64"} }')
 export VMM_DIR=${VMM_DIR:-/opt/minivmm}
 export VMM_LISTEN_PORT=${VMM_LISTEN_PORT:-14151}
-export VMM_NAME_SERVERS=${VMM_LISTEN_PORT:-1.1.1.1,1.0.0.1}
+export VMM_NAME_SERVERS=${VMM_NAME_SERVERS:-1.1.1.1,1.0.0.1}
 
 if [ "$VMM_UPDATE" != "" ]; then
   $sudo systemctl stop minivmm.service
