@@ -41,7 +41,7 @@ $ curl -Lo - https://github.com/rsp9u/minivmm/releases/latest/download/install.s
 
 #### Install without UI
 ```
-$ export VMM_NO_UI=true
+$ export VMMINST_NO_UI=true
 $ export VMM_CORS_ALLOWED_ORIGINS=https://hypervisor1.localdomain:14151
 $ curl -Lo - https://github.com/rsp9u/minivmm/releases/latest/download/install.sh | sh -
 ```
@@ -49,7 +49,7 @@ $ curl -Lo - https://github.com/rsp9u/minivmm/releases/latest/download/install.s
 ### Update
 
 ```
-$ export VMM_UPDATE=true
+$ export VMMINST_UPDATE=true
 $ curl -Lo - https://github.com/rsp9u/minivmm/releases/latest/download/install.sh | sh -
 ```
 
@@ -75,6 +75,6 @@ $ curl -Lo - https://github.com/rsp9u/minivmm/releases/latest/download/install.s
 
 | Name            | Default | Description                     |
 |-----------------|---------|---------------------------------|
-| VMM_VERSION | latest  | minivmm version to be installed |
-| VMM_NO_UI   | false   | to install without UI           |
-| VMM_UPDATE  | false   | to update minivmm               |
+| VMMINST_VERSION | latest  | minivmm version to be installed |
+| VMMINST_NO_UI   | false   | to install without UI           |
+| VMMINST_UPDATE  | false   | to update minivmm               |
