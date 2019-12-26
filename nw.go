@@ -1,14 +1,51 @@
 package minivmm
 
+import (
+	"os"
+
+	"github.com/apparentlymart/go-cidr/cidr"
+)
+
+type vmNetworkInfo struct {
+	cidrIPNet *net.IPNet
+	brIP      net.IP
+	gwIP      net.IP
+	startIP   net.IP
+}
+
 var (
 	nsName    = "minivmm"
 	brName    = "br-minivmm"
 	vethNames = []string{"minivmm", "minivmm-peer"}
-	cidr      = "192.168.200.0/24"
-	brIP      = "192.168.200.1/24"
-	gwIP      = "192.168.200.254/24"
-	startIP   = "192.168.200.101"
 )
+
+func newNetworkInfo() (*vmNetworkInfo, error) {
+	_, cidrIPNet, err := net.ParseCIDR(os.Getenv(EnvSubnetCIDR))
+	if err != nil {
+		return nil, err
+	}
+
+	cnt := int(cidr.AddressCount(cidrIPNet) - 1)
+	brIP, err := cidr.Host(cidrIPNet, 1)
+	if err != nil {
+		return err
+	}
+	gwIP, err := cidr.Host(cidrIPNet, cnt-1)
+	if err != nil {
+		return err
+	}
+	startIP, err := cidr.Host(cidrIPNet, 2)
+	if err != nil {
+		return err
+	}
+
+	return &vmNetworkInfo{
+		cidrIPNet,
+		brIP,
+		gwIP,
+		startIP,
+	}, nil
+}
 
 // InitNetns initializes netns.
 func InitNetns() error {
