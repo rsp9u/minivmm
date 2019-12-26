@@ -55,25 +55,26 @@ $ curl -Lo - https://github.com/rsp9u/minivmm/releases/latest/download/install.s
 
 # Environments
 
-| Name                     | Required(ui) | Required(no-ui) | Default           | Description                                                         |
-|--------------------------|--------------|-----------------|-------------------|---------------------------------------------------------------------|
-| VMM_DIR                  | yes          | yes             | '/opt/minivmm'    | base directory path to store state files                            |
-| VMM_ORIGIN               | yes          |                 |                   | origin url of minivmm server                                        |
-| VMM_OIDC_URL             | yes          |                 |                   | oidc auth url                                                       |
-| VMM_LISTEN_PORT          | yes          | yes             | '14151'           | listen port                                                         |
-| VMM_AGENTS               | yes          |                 |                   | agents' API endpoint (comma separated)                              |
-| VMM_CORS_ALLOWED_ORIGINS |              | yes             |                   | allowed origin urls (comma separated)                               |
-| VMM_NAME_SERVERS         | yes          | yes             | '1.1.1.1,1.0.0.1' | domain name servers' address sent via DHCP server (comma separated) |
-| VMM_SERVER_CERT          | yes          | yes             |                   | path to the server certificate file                                 |
-| VMM_SERVER_KEY           | yes          | yes             |                   | path to the server private key file                                 |
-| VMM_NO_TLS               |              |                 |                   | disable tls if set "1" or "true"                                    |
-| VMM_NO_AUTH              |              |                 |                   | skip API authentication if set "1" or "true"                        |
-| VMM_NO_KVM               |              |                 |                   | disable kvm if set "1" or "true"                                    |
+| Name                     | Required(ui) | Required(no-ui) | Default            | Description                                                         |
+|--------------------------|--------------|-----------------|--------------------|---------------------------------------------------------------------|
+| VMM_DIR                  | yes          | yes             | '/opt/minivmm'     | base directory path to store state files                            |
+| VMM_ORIGIN               | yes          |                 |                    | origin url of minivmm server                                        |
+| VMM_OIDC_URL             | yes          |                 |                    | oidc auth url                                                       |
+| VMM_LISTEN_PORT          | yes          | yes             | '14151'            | listen port                                                         |
+| VMM_AGENTS               | yes          |                 |                    | agents' API endpoint (comma separated)                              |
+| VMM_CORS_ALLOWED_ORIGINS |              | yes             |                    | allowed origin urls (comma separated)                               |
+| VMM_SUBNET_CIDR          | yes          | yes             | '192.168.200.0/24' | subnet CIDR for the network containing VMs                          |
+| VMM_NAME_SERVERS         | yes          | yes             | '1.1.1.1,1.0.0.1'  | domain name servers' address sent via DHCP server (comma separated) |
+| VMM_SERVER_CERT          | yes          | yes             |                    | path to the server certificate file                                 |
+| VMM_SERVER_KEY           | yes          | yes             |                    | path to the server private key file                                 |
+| VMM_NO_TLS               |              |                 |                    | disable tls if set "1" or "true"                                    |
+| VMM_NO_AUTH              |              |                 |                    | skip API authentication if set "1" or "true"                        |
+| VMM_NO_KVM               |              |                 |                    | disable kvm if set "1" or "true"                                    |
 
 # Installer environments
 
-| Name        | Default | Description                     |
-|-------------|---------|---------------------------------|
+| Name            | Default | Description                     |
+|-----------------|---------|---------------------------------|
 | VMM_VERSION | latest  | minivmm version to be installed |
 | VMM_NO_UI   | false   | to install without UI           |
 | VMM_UPDATE  | false   | to update minivmm               |

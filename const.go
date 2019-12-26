@@ -18,6 +18,8 @@ const (
 	EnvAgents = "VMM_AGENTS"
 	// EnvCorsOrigins is a environment variable key.
 	EnvCorsOrigins = "VMM_CORS_ALLOWED_ORIGINS"
+	// EnvSubnetCIDR is a environment variable key.
+	EnvSubnetCIDR = "VMM_SUBNET_CIDR"
 	// EnvNameServers is a environment variable key.
 	EnvNameServers = "VMM_NAME_SERVERS"
 	// EnvServerCert is a environment variable key.

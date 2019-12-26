@@ -17,6 +17,7 @@ os=$(uname -s | tr '[:upper:]' '[:lower:]')
 arch=$(uname -m | awk '{ if($1=="aarch64_be"||$1=="aarch64"||$1=="armv8b"||$1=="armv8l") {print "arm64"} else {print "amd64"} }')
 export VMM_DIR=${VMM_DIR:-/opt/minivmm}
 export VMM_LISTEN_PORT=${VMM_LISTEN_PORT:-14151}
+export VMM_SUBNET_CIDR=${VMM_SUBNET_CIDR:-192.168.200.0/24}
 export VMM_NAME_SERVERS=${VMM_NAME_SERVERS:-1.1.1.1,1.0.0.1}
 
 if [ "$VMM_UPDATE" != "" ]; then
@@ -62,6 +63,7 @@ VMM_OIDC_URL=${VMM_OIDC_URL}
 VMM_LISTEN_PORT=${VMM_LISTEN_PORT}
 VMM_AGENTS=${VMM_AGENTS}
 VMM_CORS_ALLOWED_ORIGINS=${VMM_CORS_ALLOWED_ORIGINS}
+VMM_SUBNET_CIDR=${VMM_SUBNET_CIDR}
 VMM_NAME_SERVERS=${VMM_NAME_SERVERS}
 VMM_SERVER_CERT=${VMM_SERVER_CERT}
 VMM_SERVER_KEY=${VMM_SERVER_KEY}
