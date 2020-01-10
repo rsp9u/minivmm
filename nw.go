@@ -1,6 +1,7 @@
 package minivmm
 
 import (
+	"net"
 	"os"
 
 	"github.com/apparentlymart/go-cidr/cidr"
