@@ -32,18 +32,22 @@ func parseNameServers() []byte {
 
 // ServeDHCP serves DHCP.
 func ServeDHCP() {
-	serverIP := net.ParseIP(gwIP[:len(gwIP)-3]).To4()
+	nwInfo, err := newNetworkInfo()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	dnsIPs := parseNameServers()
 	handler := &dhcpHandler{
-		ip:            serverIP,
-		start:         net.ParseIP(startIP),
+		ip:            nwInfo.gwIP,
+		start:         nwInfo.startIP,
 		leaseRange:    100,
 		leaseDuration: 2 * time.Hour,
 		leases:        make(map[int]lease, 32),
 		macVendor:     "52:54:00",
 		options: dhcp.Options{
 			dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
-			dhcp.OptionRouter:           []byte(serverIP),
+			dhcp.OptionRouter:           []byte(nwInfo.gwIP),
 			dhcp.OptionDomainNameServer: dnsIPs,
 		},
 	}

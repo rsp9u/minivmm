@@ -29,15 +29,15 @@ func newNetworkInfo() (*vmNetworkInfo, error) {
 	cnt := int(cidr.AddressCount(cidrIPNet) - 1)
 	brIP, err := cidr.Host(cidrIPNet, 1)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	gwIP, err := cidr.Host(cidrIPNet, cnt-1)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	startIP, err := cidr.Host(cidrIPNet, 2)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	return &vmNetworkInfo{
@@ -76,13 +76,18 @@ func ResetNetns() error {
 
 // StartNetwork set up interfaces.
 func StartNetwork() error {
+	nwInfo, err := newNetworkInfo()
+	if err != nil {
+		return err
+	}
+
 	return Execs([][]string{
 		{"sudo", "ip", "link", "set", "up", "dev", vethNames[0]},
 		{"sudo", "ip", "netns", "exec", nsName, "ip", "link", "set", "up", "dev", vethNames[1]},
 		{"sudo", "ip", "netns", "exec", nsName, "ip", "link", "set", "promisc", "on", "dev", vethNames[1]},
 		{"sudo", "ip", "netns", "exec", nsName, "ip", "link", "set", "up", "dev", brName},
 
-		{"sudo", "ip", "addr", "add", gwIP, "dev", vethNames[0]},
-		{"sudo", "ip", "netns", "exec", nsName, "ip", "addr", "add", brIP, "dev", brName},
+		{"sudo", "ip", "addr", "add", nwInfo.gwIP.String(), "dev", vethNames[0]},
+		{"sudo", "ip", "netns", "exec", nsName, "ip", "addr", "add", nwInfo.brIP.String(), "dev", brName},
 	})
 }
