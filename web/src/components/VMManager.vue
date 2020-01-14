@@ -28,7 +28,7 @@
                     v-col(cols="12" md="4")
                       v-text-field(v-model="editedVM.disk" label="disk" placeholder="e.g. 1024M 20G")
                     v-col(cols="12")
-                      v-text-field(v-model="editedVM.tag" label="tag(csv)" placeholder="e.g. test,cirros")
+                      v-select(v-model="editedVM.user_data_template" :items="cloudinitTemplates" label="user data template" @change="selectCloudinitTemplate")
                     v-col(cols="12")
                       v-textarea(v-model="editedVM.user_data" label="user data")
               v-card-actions
@@ -49,6 +49,7 @@
 
 <script>
 import util from "@/util";
+import cloudinit from "@/cloudinit";
 import axios from "axios";
 axios.defaults.headers.post["Content-Type"] = "application/json";
 
@@ -69,7 +70,6 @@ export default {
       "cpu",
       "memory",
       "disk",
-      "tag"
     ];
     let vmHeaders;
     vmHeaders = vmHeaderList.map(x => ({ text: x, value: x }));
@@ -91,6 +91,7 @@ export default {
       editedVM: { name: "" },
       images: [],
       menuItems: menuItems,
+      cloudinitTemplates: cloudinit.templates,
       rules: {
         max: v => v.length <= 10 || "Max 10 characters"
       },
@@ -124,6 +125,12 @@ export default {
           .then(
             response => (this.images = response.data.images.map(x => x.name))
           );
+      }
+    },
+
+    selectCloudinitTemplate() {
+      if (this.editedVM.user_data_template !== null) {
+        this.editedVM.user_data = this.editedVM.user_data_template;
       }
     },
 
