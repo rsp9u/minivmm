@@ -9,7 +9,8 @@ else
 fi
 
 default_dev=$(ip route | grep "^default" | sed -e 's|.*\(dev.*\)|\1|' | awk '{print $2}')
-$sudo iptables -t nat -D POSTROUTING -o $default_dev -s 192.168.200.0/24 -j MASQUERADE
+subnet_cidr=$(grep VMM_SUBNET_CIDR $(grep EnvironmentFile /etc/systemd/system/minivmm.service | cut -d= -f2) | cut -d= -f2)
+$sudo iptables -t nat -D POSTROUTING -o $default_dev -s $subnet_cidr -j MASQUERADE
 
 $sudo systemctl stop minivmm.service
 $sudo systemctl disable minivmm.service

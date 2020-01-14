@@ -88,4 +88,4 @@ $sudo systemctl enable minivmm.service
 $sudo systemctl start minivmm.service
 
 default_dev=$(ip route | grep "^default" | sed -e 's|.*\(dev.*\)|\1|' | awk '{print $2}')
-$sudo iptables -t nat -A POSTROUTING -o $default_dev -s 192.168.200.0/24 -j MASQUERADE
+$sudo iptables -t nat -A POSTROUTING -o $default_dev -s ${VMM_SUBNET_CIDR} -j MASQUERADE
