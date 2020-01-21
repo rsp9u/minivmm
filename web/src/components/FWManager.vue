@@ -1,5 +1,5 @@
 <template lang="pug">
-  v-data-table(:headers="fwsHeaders" :items="fwsView")
+  v-data-table(:headers="fwsHeaders" :items="fwsView" :items-per-page="-1")
     template(v-slot:top)
       v-toolbar(flat)
         v-toolbar-title Forwards

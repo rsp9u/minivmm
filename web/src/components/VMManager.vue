@@ -1,6 +1,6 @@
 <template lang="pug">
   #vmmanager
-    v-data-table(:headers="vmsHeaders" :items="vms")
+    v-data-table(:headers="vmsHeaders" :items="vms" :items-per-page="-1")
       template(v-slot:top)
         v-toolbar(flat)
           v-toolbar-title VMs
