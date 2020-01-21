@@ -66,6 +66,7 @@ export default {
       "name",
       "status",
       "hypervisor",
+      "image",
       "ip",
       "cpu",
       "memory",
