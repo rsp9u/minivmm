@@ -14,24 +14,22 @@
             v-card-text
               v-container
                 v-row
-                  v-col(cols="12" md="8")
+                  v-col(cols="12")
                     v-select(v-model="editedFw.hypervisor" :items="agentNames" label="hypervisor")
                 v-row
-                  v-col(cols="12" md="8")
+                  v-col(cols="12" sm="6" md="3")
                     v-select(v-model="editedFw.proto" :items="protocols" label="protocol")
-                v-row
-                  v-col(cols="12" sm="6" md="4")
+                  v-col(cols="12" sm="6" md="3")
                     v-text-field(v-model="editedFw.from_port" label="from port")
-                  v-col(cols="12" sm="6" md="4")
+                  v-col(cols="12" sm="6" md="3")
                     v-select(v-model="editedFw.to_name" :items="vmNames" label="to name")
-                  v-col(cols="12" sm="6" md="4")
+                  v-col(cols="12" sm="6" md="3")
                     v-text-field(v-model="editedFw.to_port" label="to port")
                 v-row
-                  v-col(cols="12" md="8")
-                    v-select(v-model="editedFw.type" :items="fwsType" label="type")
-                v-row
-                  v-col(cols="12")
+                  v-col(cols="12" md="6")
                     v-text-field(v-model="editedFw.description" label="description")
+                  v-col(cols="12" md="6")
+                    v-select(v-model="editedFw.type" :items="fwsType" label="type")
             v-card-actions
               v-btn(color="darken-1" text @click="clear") Cancel
               v-spacer

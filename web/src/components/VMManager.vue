@@ -15,12 +15,12 @@
               v-card-text
                 v-container
                   v-row
+                    v-col(cols="12" md="6")
+                      v-select(v-model="editedVM.hypervisor" :items="agentNames" label="hypervisor" @change="updateImages")
+                    v-col(cols="12" md="6")
+                      v-select(v-model="editedVM.image" :items="images" label="image")
                     v-col(cols="12")
                       v-text-field(v-model="editedVM.name" :rules="[rules.max]" @update:error="nameError" label="name")
-                    v-col(cols="12")
-                      v-select(v-model="editedVM.hypervisor" :items="agentNames" label="hypervisor" @change="updateImages")
-                    v-col(cols="12")
-                      v-select(v-model="editedVM.image" :items="images" label="image")
                     v-col(cols="12" md="4")
                       v-text-field(v-model="editedVM.cpu" label="vcpu")
                     v-col(cols="12" md="4")
