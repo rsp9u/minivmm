@@ -27,6 +27,10 @@
                       v-text-field(v-model="editedVM.memory" label="memory" placeholder="e.g. 521M 2048M")
                     v-col(cols="12" md="4")
                       v-text-field(v-model="editedVM.disk" label="disk" placeholder="e.g. 1024M 20G")
+                    v-col(cols="12" md="4")
+                      v-checkbox(v-model="editedVM.ssh_fw" label="add ssh forward")
+                    v-col(cols="12" md="8")
+                      v-text-field(v-model="editedVM.ssh_fw_port" label="from port" :disabled="!editedVM.ssh_fw")
                     v-col(cols="12")
                       v-select(v-model="editedVM.user_data_template" :items="cloudinitTemplates" label="user data template" @change="selectCloudinitTemplate")
                     v-col(cols="12")
@@ -70,7 +74,7 @@ export default {
       "ip",
       "cpu",
       "memory",
-      "disk",
+      "disk"
     ];
     let vmHeaders;
     vmHeaders = vmHeaderList.map(x => ({ text: x, value: x }));
@@ -83,13 +87,19 @@ export default {
       { title: "delete" }
     ];
 
+    const defaultVM = {
+      name: "",
+      ssh_fw: true
+    };
+
     return {
       vmsHeaders: vmHeaders,
       dialogVisible: false,
       vncPort: "",
       vncPassword: "",
       vncPopup: false,
-      editedVM: { name: "" },
+      editedVM: Object.assign({}, defaultVM),
+      defaultVM: defaultVM,
       images: [],
       menuItems: menuItems,
       cloudinitTemplates: cloudinit.templates,
@@ -106,7 +116,7 @@ export default {
   },
   methods: {
     clear() {
-      this.editedVM = { name: "" };
+      this.editedVM = Object.assign({}, this.defaultVM);
       this.images = [];
       this.dialogVisible = false;
     },
@@ -159,6 +169,18 @@ export default {
         })
         .finally(() => {
           console.log("finally");
+          if (this.editedVM.ssh_fw) {
+            const fw = {
+              hypervisor: this.editedVM.hypervisor,
+              proto: "tcp",
+              from_port: this.editedVM.ssh_fw_port,
+              to_name: this.editedVM.name,
+              to_port: "22",
+              description: `ssh to ${this.editedVM.name}`,
+              type: "ssh"
+            };
+            this.$emit("add-forward", fw);
+          }
           this.clear();
           this.$emit("update-vms");
         });

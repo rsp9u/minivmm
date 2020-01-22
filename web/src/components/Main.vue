@@ -3,8 +3,8 @@
     v-app
       v-content
         v-container
-          VMManager(:agents="agents" :vms="vms" @push-toast="toast" @update-vms="getAllVMs")
-          FWManager(:agents="agents" :fws="fws" :vms="vms" @push-toast="toast" @update-forwards="getAllForwards")
+          VMManager(ref="vmm" :agents="agents" :vms="vms" @push-toast="toast" @update-vms="getAllVMs" @add-forward="addForwardFromVMManager")
+          FWManager(ref="fwm" :agents="agents" :fws="fws" :vms="vms" @push-toast="toast" @update-forwards="getAllForwards")
       v-snackbar(
         v-model="toastVisible"
         :top="true"
@@ -81,6 +81,9 @@ export default {
       prevVMs.sort();
       currVMs.sort();
       return JSON.stringify(prevVMs) !== JSON.stringify(currVMs);
+    },
+    addForwardFromVMManager(fw) {
+      this.$refs.fwm.createFwFromObject(fw);
     },
     // Forward
     async getForwards(apiEndpoint) {

@@ -94,14 +94,17 @@ export default {
     },
 
     createFw() {
-      const ep = this.getAgentEndpoint(this.editedFw.hypervisor);
+      this.createFwFromObject(this.editedFw);
+    },
+    createFwFromObject(fw) {
+      const ep = this.getAgentEndpoint(fw.hypervisor);
       if (ep === "") {
         alert("Unknown hypervisor.");
         this.clear();
         return;
       }
       const url = ep + "forwards";
-      const body = this.editedFw;
+      const body = fw;
       const errMsg = "Failed to create new forward";
       util
         .callAxios(axios.post, url, body, errMsg)
