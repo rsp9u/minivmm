@@ -288,7 +288,7 @@ func loadVMMetaData(name string) (*VMMetaData, error) {
 	return &vmMetaData, nil
 }
 
-func createCloudInitISO(cloudInitFilesPath, isoPath, userData string) error {
+func createCloudInitISO(cloudInitFilesPath, isoPath, name, userData string) error {
 	// write userdata
 	userDataPath := filepath.Join(cloudInitFilesPath, cloudInitUserDataFileName)
 	userDataFile, err := os.OpenFile(userDataPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
@@ -306,7 +306,8 @@ func createCloudInitISO(cloudInitFilesPath, isoPath, userData string) error {
 		return err
 	}
 	defer metaDataFile.Close()
-	metaDataFile.Write([]byte(""))
+	metaData := fmt.Sprintf("local-hostname: %s", name)
+	metaDataFile.Write([]byte(metaData))
 
 	err = Execs([][]string{
 		{"genisoimage", "-output", isoPath, "-volid", "cidata", "-joliet", "-rock", userDataPath, metaDataPath},
@@ -329,7 +330,6 @@ func CreateVM(name, owner, imageName, cpu, memory, disk, userData, tag string) (
 		}
 	}()
 
-
 	vmDataDir := filepath.Join(VMDir, name)
 	driveFilePath, err := CreateImage(name, disk, imageName, vmDataDir)
 	if err != nil {
@@ -339,7 +339,7 @@ func CreateVM(name, owner, imageName, cpu, memory, disk, userData, tag string) (
 	// to support cloud-init, generate userdata ISO
 	isoFilePath := filepath.Join(VMDir, name, cloudInitISOFileName)
 	userDataPath := filepath.Join(VMDir, name)
-	err = createCloudInitISO(userDataPath, isoFilePath, userData)
+	err = createCloudInitISO(userDataPath, isoFilePath, name, userData)
 	if err != nil {
 		return nil, err
 	}
