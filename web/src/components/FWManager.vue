@@ -1,50 +1,58 @@
 <template lang="pug">
-  v-data-table(:headers="fwsHeaders" :items="fwsView" :items-per-page="-1")
-    template(v-slot:top)
-      v-toolbar(flat)
-        v-toolbar-title Forwards
-        v-spacer
-        v-dialog(v-model="dialogVisible" max-width="32em")
-          template(v-slot:activator="{ on }")
-            v-btn(color="primary" v-on="on")
-              v-icon mdi-plus-thick
-          v-card
-            v-card-title
-              span.headline Add Forwarding rule
-            v-card-text
-              v-container
-                v-row
-                  v-col(cols="12")
-                    v-select(v-model="editedFw.hypervisor" :items="agentNames" label="hypervisor")
-                v-row
-                  v-col(cols="12" sm="6" md="3")
-                    v-select(v-model="editedFw.proto" :items="protocols" label="protocol")
-                  v-col(cols="12" sm="6" md="3")
-                    v-text-field(v-model="editedFw.from_port" label="from port")
-                  v-col(cols="12" sm="6" md="3")
-                    v-select(v-model="editedFw.to_name" :items="vmNames" label="to name")
-                  v-col(cols="12" sm="6" md="3")
-                    v-text-field(v-model="editedFw.to_port" label="to port")
-                v-row
-                  v-col(cols="12" md="6")
-                    v-text-field(v-model="editedFw.description" label="description")
-                  v-col(cols="12" md="6")
-                    v-select(v-model="editedFw.type" :items="fwsType" label="type")
-            v-card-actions
-              v-btn(color="darken-1" text @click="clear") Cancel
-              v-spacer
-              v-btn(color="blue darken-1" text @click="createFw") Create
-    template(v-slot:item.link="{ item }")
-      template(v-if="item.type === 'http/https'")
-        a.link-text(:href="'http://' + getAgentIP(item.hypervisor) + ':' + item.from_port") http
-        br
-        a.link-text(:href="'https://' + getAgentIP(item.hypervisor) + ':' + item.from_port") https
-      template(v-if="item.type === 'ssh'")
-        a.link-text(:href="'ssh://' + getAgentIP(item.hypervisor) + ':' + item.from_port") ssh
-      template(v-if="item.type === 'vnc'")
-        a.link-text(:href="'vnc://' + getAgentIP(item.hypervisor) + ':' + item.from_port") vnc
-    template(v-slot:item.action="{ item }")
-      v-icon.mr-2(small @click="deleteItem(item)") mdi-delete
+  #minivmm_fwmanager.section
+    div(style="display: flex")
+      p.is-size-4 Forwards
+      b-button(type="is-info" icon-left="plus-thick" style="margin-left: auto" @click="dialogVisible = true") New
+    b-table(:data="fwsView")
+      template(v-slot:default="{ row: item }")
+        b-table-column(v-for="attr in fwAttrs" :key="attr" :label="attr" :field="attr") {{ item[attr] }}
+        b-table-column(label="link")
+          template(v-if="item.type === 'http/https'")
+            a.link-text(:href="'http://' + getAgentIP(item.hypervisor) + ':' + item.from_port") http
+            br
+            a.link-text(:href="'https://' + getAgentIP(item.hypervisor) + ':' + item.from_port") https
+          template(v-if="item.type === 'ssh'")
+            a.link-text(:href="'ssh://' + getAgentIP(item.hypervisor) + ':' + item.from_port") ssh
+          template(v-if="item.type === 'vnc'")
+            a.link-text(:href="'vnc://' + getAgentIP(item.hypervisor) + ':' + item.from_port") vnc
+        b-table-column(label="action")
+          b-tooltip(label="delete" position="is-right")
+            b-button(type="is-text" icon-left="delete" size="is-small" @click="deleteItem(item)")
+    b-modal(:active.sync="dialogVisible" width="32em" :can-cancel="['escape', 'outside']")
+      form
+        .modal-card(style="max-width: 32em")
+          header.modal-card-head
+            p.modal-card-title Add Forwarding rule
+          section.modal-card-body
+            .columns.is-multiline
+              .column.is-12
+                b-field(label="hypervisor")
+                  b-select(v-model="editedFw.hypervisor" expanded)
+                    option(v-for="option in agentNames" :key="option" :value="option") {{ option }}
+              .column.is-3
+                b-field(label="protocol")
+                  b-select(v-model="editedFw.proto" expanded)
+                    option(v-for="option in protocols" :key="option" :value="option") {{ option }}
+              .column.is-3
+                b-field(label="from port")
+                  b-input(v-model="editedFw.from_port")
+              .column.is-3
+                b-field(label="to name")
+                  b-select(v-model="editedFw.to_name" expanded)
+                    option(v-for="option in vmNames" :key="option" :value="option") {{ option }}
+              .column.is-3
+                b-field(label="to port")
+                  b-input(v-model="editedFw.to_port")
+              .column.is-6
+                b-field(label="description")
+                  b-input(v-model="editedFw.description")
+              .column.is-6
+                b-field(label="type")
+                  b-select(v-model="editedFw.type" expanded)
+                    option(v-for="option in fwTypes" :key="option" :value="option") {{ option }}
+          footer.modal-card-foot(style="justify-content: flex-end")
+            b-button(@click="clear") Cancel
+            b-button(type="is-info" @click="createFw") Create
 </template>
 
 <script>
@@ -56,17 +64,9 @@ export default {
   name: "FWManager",
   props: ["agents", "fws", "vms"],
   data() {
-    const fwHeaderList = ["proto", "translation", "description"];
-    let fwHeaders;
-    fwHeaders = fwHeaderList.map(x => ({ text: x, value: x }));
-    fwHeaders.push({ text: "link", value: "link", sortable: false });
-    fwHeaders.push({ text: "action", value: "action", sortable: false });
-
-    const fwsType = ["http/https", "ssh", "vnc"];
-
     return {
-      fwsHeaders: fwHeaders,
-      fwsType: fwsType,
+      fwAttrs: ["proto", "translation", "description"],
+      fwTypes: ["http/https", "ssh", "vnc"],
       dialogVisible: false,
       editedFw: { proto: "tcp" },
       protocols: ["tcp", "udp"]

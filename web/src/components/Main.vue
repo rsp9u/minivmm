@@ -1,16 +1,7 @@
 <template lang="pug">
-  div#minivmm_main
-    v-app
-      v-content
-        v-container
-          VMManager(ref="vmm" :agents="agents" :vms="vms" @push-toast="toast" @update-vms="getAllVMs" @add-forward="addForwardFromVMManager")
-          FWManager(ref="fwm" :agents="agents" :fws="fws" :vms="vms" @push-toast="toast" @update-forwards="getAllForwards")
-      v-snackbar(
-        v-model="toastVisible"
-        :top="true"
-        :multi-line="true"
-        :color="toastColor"
-      ) {{ toastMessage }}
+  #minivmm_main
+    VMManager(ref="vmm" :agents="agents" :vms="vms" @push-toast="toast" @update-vms="getAllVMs" @add-forward="addForwardFromVMManager")
+    FWManager(ref="fwm" :agents="agents" :fws="fws" :vms="vms" @push-toast="toast" @update-forwards="getAllForwards")
 </template>
 
 <script>
@@ -32,9 +23,6 @@ export default {
       vms: [],
       fws: [],
       intervalIds: [],
-      toastMessage: "",
-      toastColor: "",
-      toastVisible: false
     };
   },
   created() {
@@ -122,9 +110,7 @@ export default {
     },
     // Toast
     toast({ message, color }) {
-      this.toastMessage = message;
-      this.toastColor = color;
-      this.toastVisible = true;
+      this.$buefy.toast.open({ message: message, type: color })
     }
   }
 };

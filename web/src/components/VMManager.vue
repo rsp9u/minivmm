@@ -1,54 +1,66 @@
 <template lang="pug">
-  #vmmanager
-    v-data-table(:headers="vmsHeaders" :items="vms" :items-per-page="-1")
-      template(v-slot:top)
-        v-toolbar(flat)
-          v-toolbar-title VMs
-          v-spacer
-          v-dialog(v-model="dialogVisible" max-width="40em")
-            template(v-slot:activator="{ on }")
-              v-btn(color="primary" v-on="on")
-                v-icon mdi-plus-thick
-            v-card
-              v-card-title
-                span.headline Create VM
-              v-card-text
-                v-container
-                  v-row
-                    v-col(cols="12" md="6")
-                      v-select(v-model="editedVM.hypervisor" :items="agentNames" label="hypervisor" @change="updateImages")
-                    v-col(cols="12" md="6")
-                      v-select(v-model="editedVM.image" :items="images" label="image")
-                    v-col(cols="12")
-                      v-text-field(v-model="editedVM.name" :rules="[rules.max]" @update:error="nameError" label="name")
-                    v-col(cols="12" md="4")
-                      v-text-field(v-model="editedVM.cpu" label="vcpu")
-                    v-col(cols="12" md="4")
-                      v-text-field(v-model="editedVM.memory" label="memory" placeholder="e.g. 521M 2048M")
-                    v-col(cols="12" md="4")
-                      v-text-field(v-model="editedVM.disk" label="disk" placeholder="e.g. 1024M 20G")
-                    v-col(cols="12" md="4")
-                      v-checkbox(v-model="editedVM.ssh_fw" label="add ssh forward")
-                    v-col(cols="12" md="8")
-                      v-text-field(v-model="editedVM.ssh_fw_port" label="from port" :disabled="!editedVM.ssh_fw")
-                    v-col(cols="12")
-                      v-select(v-model="editedVM.user_data_template" :items="cloudinitTemplates" label="user data template" @change="selectCloudinitTemplate")
-                    v-col(cols="12")
-                      v-textarea(v-model="editedVM.user_data" label="user data")
-              v-card-actions
-                v-btn(color="darken-1" text @click="clear") Cancel
-                v-spacer
-                v-btn(color="blue darken-1" text :disabled="invalidVM" @click="createVM") Create
-      template(v-slot:item.action="{ item }")
-        VMMenu(:endpoint="getAgentEndpoint(item.hypervisor)" :item="item" @push-toast="propagatePushToast")
-    v-dialog(v-model="vncPopup" persistent max-width="20em")
-      v-card
-        v-card-title.headline VNC Info
-        v-card-text
+  #minivmm_vmmanager.section
+    div(style="display: flex")
+      p.is-size-4 VMs
+      b-button(type="is-info" icon-left="plus-thick" style="margin-left: auto" @click="dialogVisible = true") New
+    b-table(:data="vms")
+      template(v-slot:default="{ row: item }")
+        b-table-column(v-for="attr in vmAttrs" :key="attr" :label="attr" :field="attr") {{ item[attr] }}
+        b-table-column(label="action")
+          VMMenu(:endpoint="getAgentEndpoint(item.hypervisor)" :item="item" @push-toast="propagatePushToast")
+    b-modal(:active.sync="dialogVisible" width="32em")
+      form
+        .modal-card(style="max-width: 32em")
+          header.modal-card-head
+            p.modal-card-title Create VM
+          section.modal-card-body
+            .columns.is-multiline
+              .column.is-6
+                b-field(label="hypervisor")
+                  b-select(v-model="editedVM.hypervisor" expanded @input="updateImages")
+                    option(v-for="option in agentNames" :key="option" :value="option") {{ option }}
+              .column.is-6
+                b-field(label="image")
+                  b-select(v-model="editedVM.image" expanded)
+                    option(v-for="option in images" :key="option" :value="option") {{ option }}
+              .column.is-12
+                b-field(label="name")
+                  b-input(v-model="editedVM.name")
+              .column.is-4
+                b-field(label="vcpu")
+                  b-input(v-model="editedVM.cpu")
+              .column.is-4
+                b-field(label="memory")
+                  b-input(v-model="editedVM.memory" placeholder="e.g. 521M 2048M")
+              .column.is-4
+                b-field(label="disk")
+                  b-input(v-model="editedVM.disk" placeholder="e.g. 1024M 20G")
+              .column.is-4
+                b-field(label="add ssh forward")
+                  b-checkbox(v-model="editedVM.ssh_fw") enable
+              .column.is-8
+                b-field(label="from port")
+                  b-input(v-model="editedVM.ssh_fw_port" :disabled="!editedVM.ssh_fw")
+              .column.is-12
+                b-field(label="user data template")
+                  b-select(v-model="editedVM.user_data_template" expanded @input="selectCloudinitTemplate")
+                    option(v-for="option in cloudinitTemplates" :key="option.text" :value="option.value") {{ option.text }}
+              .column.is-12
+                b-field(label="user data")
+                  b-input(v-model="editedVM.user_data" type="textarea")
+          footer.modal-card-foot(style="justify-content: flex-end")
+            b-button(@click="clear") Cancel
+            b-button(type="is-info" @click="createVM") Create
+    b-modal(:active.sync="vncPopup" width="20em" :can-cancel="false")
+      .modal-card(style="max-width: 20em")
+        header.modal-card-head
+          p.modal-card-title VNC Info
+        section.modal-card-body
           | Port: {{ vncPort }}
           br
           | Password: {{ vncPassword }}
-        v-btn(color="green darken-1" text @click="vncPopup = false") Close
+        footer.modal-card-foot(style="justify-content: flex-end")
+          b-button(type="is-success" @click="vncPopup = false") Close
 </template>
 
 <script>
@@ -66,20 +78,6 @@ export default {
   },
   props: ["agents", "vms"],
   data() {
-    const vmHeaderList = [
-      "name",
-      "status",
-      "hypervisor",
-      "image",
-      "ip",
-      "cpu",
-      "memory",
-      "disk"
-    ];
-    let vmHeaders;
-    vmHeaders = vmHeaderList.map(x => ({ text: x, value: x }));
-    vmHeaders.push({ text: "action", value: "action", sortable: false });
-
     const menuItems = [
       { title: "start" },
       { title: "stop" },
@@ -93,7 +91,7 @@ export default {
     };
 
     return {
-      vmsHeaders: vmHeaders,
+      vmAttrs: ["name", "status", "hypervisor", "image", "ip", "cpu", "memory", "disk"],
       dialogVisible: false,
       vncPort: "",
       vncPassword: "",

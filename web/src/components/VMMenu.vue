@@ -1,33 +1,33 @@
 <template lang="pug">
-  #vmmenu
-    v-menu(offset-y)
-      template(v-slot:activator="{ on }")
-        v-icon.mr-2(v-on="on") mdi-dots-horizontal
-      v-list
-        v-list-item(v-for="(menu, menuIndex) in menuItems" :key="menuIndex" @click="clickMenu(menu)")
-          v-list-item-title {{ menu.title }}
-    v-dialog(v-model="resizeDialog" persistent max-width="30em")
-      v-card
-        v-card-title.headline Resize VM
-        v-card-text
-          v-container
-            v-row
-              v-col(cols="12")
-                v-select(v-model="editedResize.type" :items="resizeType" label="type")
+  #minivmm_vmmenu
+    b-dropdown(aria-role="list")
+      template(v-slot:trigger)
+        b-button(type="is-text" icon-left="dots-horizontal" size="is-small")
+      b-dropdown-item(v-for="(menu, menuIndex) in menuItems" :key="menuIndex" aria-role="listitem" @click="clickMenu(menu)") {{ menu.title }}
+    b-modal(:active.sync="resizeDialog" width="30em" :can-cancel="['escape', 'outside']")
+      .modal-card(style="max-width: 30em")
+        header.modal-card-head
+          p.modal-card-title Resize VM
+        section.modal-card-body
+          .columns.is-multiline
+            .column.is-12
+              b-field(label="type")
+                b-select(v-model="editedResize.type" expanded)
+                  option(v-for="option in resizeType" :key="option" :value="option") {{ option }}
             template(v-if="editedResize.type === 'cpu/memory'")
-              v-row
-                v-col(cols="6")
-                  v-text-field(v-model="editedResize.cpu" label="vcpu")
-                v-col(cols="6")
-                  v-text-field(v-model="editedResize.memory" label="memory" placeholder="e.g. 521M 2048M")
+              .column.is-6
+                b-field(label="vcpu")
+                  b-input(v-model="editedResize.cpu")
+              .column.is-6
+                b-field(label="memory")
+                  b-input(v-model="editedResize.memory" placeholder="e.g. 521M 2048M")
             template(v-if="editedResize.type === 'disk'")
-              v-row
-                v-col(cols="6")
-                  v-text-field(v-model="editedResize.disk" label="disk" placeholder="e.g. 1024M 20G")
-        v-card-actions
-          v-btn(color="darken-1" text @click="resizeCancel") Cancel
-          v-spacer
-          v-btn(color="blue darken-1" text @click="resizeVM") Create
+              .column.is-6
+                b-field(label="disk")
+                  b-input(v-model="editedResize.disk" placeholder="e.g. 1024M 20G")
+        footer.modal-card-foot(style="justify-content: flex-end")
+          b-button(@click="resizeCancel") Cancel
+          b-button(type="is-info" @click="resizeVM") Resize
 </template>
 
 <script>
@@ -116,7 +116,7 @@ export default {
     deleteVM() {
       if (confirm("Are you sure you want to delete this item?")) {
         const infoMsg = "Accepted VM deletion";
-        this.$emit("push-toast", { message: infoMsg, color: "info" });
+        this.$emit("push-toast", { message: infoMsg, color: "is-info" });
 
         const url = this.endpoint + `vms/${this.item.name}`;
         const errMsg = "Failed to delete VM";
@@ -124,7 +124,7 @@ export default {
           .callAxios(axios.delete, url, null, errMsg)
           .then(() => {
             const successMsg = "Suceeded VM deletion";
-            this.$emit("push-toast", { message: successMsg, color: "success" });
+            this.$emit("push-toast", { message: successMsg, color: "is-success" });
           })
           .catch(msg => {
             this.$emit("push-toast", msg);
