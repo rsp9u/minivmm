@@ -9,7 +9,6 @@ import (
 
 type vmNetworkInfo struct {
 	cidrIPNet *net.IPNet
-	brIP      net.IP
 	gwIP      net.IP
 	startIP   net.IP
 }
@@ -27,22 +26,17 @@ func newNetworkInfo() (*vmNetworkInfo, error) {
 	}
 
 	cnt := int(cidr.AddressCount(cidrIPNet) - 1)
-	brIP, err := cidr.Host(cidrIPNet, 1)
-	if err != nil {
-		return nil, err
-	}
 	gwIP, err := cidr.Host(cidrIPNet, cnt-1)
 	if err != nil {
 		return nil, err
 	}
-	startIP, err := cidr.Host(cidrIPNet, 2)
+	startIP, err := cidr.Host(cidrIPNet, 1)
 	if err != nil {
 		return nil, err
 	}
 
 	return &vmNetworkInfo{
 		cidrIPNet,
-		brIP,
 		gwIP,
 		startIP,
 	}, nil
@@ -88,6 +82,6 @@ func StartNetwork() error {
 		{"sudo", "ip", "netns", "exec", nsName, "ip", "link", "set", "up", "dev", brName},
 
 		{"sudo", "ip", "addr", "add", nwInfo.gwIP.String(), "dev", vethNames[0]},
-		{"sudo", "ip", "netns", "exec", nsName, "ip", "addr", "add", nwInfo.brIP.String(), "dev", brName},
+		{"sudo", "ip", "route", "add", nwInfo.cidrIPNet.String(), "dev", vethNames[0]},
 	})
 }
