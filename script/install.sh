@@ -25,20 +25,25 @@ if [ "$VMMINST_UPDATE" != "" ]; then
 fi
 
 # Retrieve binary
-if [ ! -f $CACHE_DIR/$VMMINST_VERSION/minivmm_${os}_${arch} ]; then
+cache_bin=$CACHE_DIR/$VMMINST_VERSION/minivmm_${os}_${arch}
+if [ ! -f ${cache_bin} ]; then
   mkdir -p $CACHE_DIR/$VMMINST_VERSION
-  curl -Lo $CACHE_DIR/$VMMINST_VERSION/minivmm_${os}_${arch} https://github.com/rsp9u/minivmm/releases/download/$VMMINST_VERSION/minivmm_${os}_${arch}
+  curl -Lo ${cache_bin} https://github.com/rsp9u/minivmm/releases/download/$VMMINST_VERSION/minivmm_${os}_${arch}
+
+  # Verify checksum
+  curl -Lo - https://github.com/rsp9u/minivmm/releases/download/$VMMINST_VERSION/sha256sum.txt | \
+    grep minivmm_${os}_${arch} | \
+    sed -e 's,release/'minivmm_${os}_${arch}','${cache_bin}',' | \
+    sha256sum -c -
+  if [ $? -ne 0 ]; then
+    echo -e "failed to verify checksum.\nplease retry."
+    rm -f ${cache_bin}
+    exit 1
+  fi
 fi
-$sudo cp $CACHE_DIR/$VMMINST_VERSION/minivmm_${os}_${arch} $BIN
+$sudo cp ${cache_bin} $BIN
 $sudo chmod +x $BIN
 $sudo setcap 'CAP_NET_BIND_SERVICE,CAP_NET_RAW=+eip' $BIN
-
-# Verify checksum
-curl -Lo - https://github.com/rsp9u/minivmm/releases/download/$VMMINST_VERSION/sha256sum.txt | \
-  grep minivmm_${os}_${arch} | \
-  sed -e 's,release/'minivmm_${os}_${arch}','$BIN',' | \
-  sha256sum -c -
-if [ $? -ne 0 ]; then echo "failed to verify checksum.\nplease retry."; exit 1; fi
 
 if [ "$VMMINST_UPDATE" != "" ]; then
   $sudo systemctl start minivmm.service
