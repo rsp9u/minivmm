@@ -8,14 +8,23 @@ import (
 
 // Execs executes commands array. If any command occures an error, it will return std error.
 func Execs(cmds [][]string) error {
+	return execs(cmds, false)
+}
+
+// ExecsIgnoreErr executes commands array. If any command occures an error, it will be ignored.
+func ExecsIgnoreErr(cmds [][]string) {
+	execs(cmds, true)
+}
+
+func execs(cmds [][]string, ignoreErr bool) error {
 	for _, cmd := range cmds {
 		c := exec.Command(cmd[0], cmd[1:]...)
 		stderr, _ := c.StderrPipe()
-		if err := c.Start(); err != nil {
+		if err := c.Start(); err != nil && ignoreErr != false {
 			return fmt.Errorf("%v: failed to start command %v", err, cmd)
 		}
 		msg, _ := ioutil.ReadAll(stderr)
-		if err := c.Wait(); err != nil {
+		if err := c.Wait(); err != nil && ignoreErr != false {
 			return fmt.Errorf("%v, %v: %s", err, cmd, msg)
 		}
 	}

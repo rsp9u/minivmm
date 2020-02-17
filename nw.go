@@ -75,7 +75,7 @@ func StartNetwork() error {
 		return err
 	}
 
-	return Execs([][]string{
+	ExecsIgnoreErr([][]string{
 		{"sudo", "ip", "link", "set", "up", "dev", vethNames[0]},
 		{"sudo", "ip", "netns", "exec", nsName, "ip", "link", "set", "up", "dev", vethNames[1]},
 		{"sudo", "ip", "netns", "exec", nsName, "ip", "link", "set", "promisc", "on", "dev", vethNames[1]},
@@ -84,4 +84,5 @@ func StartNetwork() error {
 		{"sudo", "ip", "addr", "add", nwInfo.gwIP.String(), "dev", vethNames[0]},
 		{"sudo", "ip", "route", "add", nwInfo.cidrIPNet.String(), "dev", vethNames[0]},
 	})
+	return nil
 }

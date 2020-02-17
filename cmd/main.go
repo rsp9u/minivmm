@@ -115,7 +115,7 @@ func main() {
 
 	err := minivmm.StartNetwork()
 	if err != nil {
-		log.Println("warn network configuration error", err)
+		log.Fatal(err)
 	}
 	err = ensureDir()
 	if err != nil {
