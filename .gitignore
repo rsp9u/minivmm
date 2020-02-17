@@ -1,2 +1,4 @@
 bin
 statik
+.env.local
+.env.*.local
