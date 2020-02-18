@@ -14,6 +14,8 @@ def main(ctx):
         "name": "make release",
         "image": "alpine",
         "commands": [
+          "apk add upx",
+          "upx -9 bin/*",
           "mkdir -p release",
           "cp bin/* release",
           "cp script/install.sh release",
