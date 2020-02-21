@@ -59,6 +59,7 @@ type VMMetaData struct {
 	Memory       string `json:"memory"`
 	Disk         string `json:"disk"`
 	Tag          string `json:"tag"`
+	Lock         bool   `json:"lock"`
 	VNCPassword  string `json:"vnc_password"`
 	VNCPort      string `json:"vnc_port"`
 	UserData     string `json:"user_data"`
@@ -357,6 +358,7 @@ func CreateVM(name, owner, imageName, cpu, memory, disk, userData, tag string) (
 		Memory:       memory,
 		Disk:         disk,
 		Tag:          tag,
+		Lock:         false,
 		VNCPassword:  password,
 		VNCPort:      "",
 		UserData:     userData,
@@ -497,6 +499,32 @@ func ResizeVM(name, cpu, memory, disk string) (*VMMetaData, error) {
 	return metaData, nil
 }
 
+// LockVM lock the VM to prevent from some operations.
+func LockVM(name string) (*VMMetaData, error) {
+	return setVMLock(name, true)
+}
+
+// UnlockVM unlock the VM.
+func UnlockVM(name string) (*VMMetaData, error) {
+	return setVMLock(name, false)
+}
+
+func setVMLock(name string, lock bool) (*VMMetaData, error) {
+	metaData, err := GetVM(name)
+	if err != nil {
+		return nil, errors.Wrap(err, "setVMLock: Failed to get VM metadata")
+	}
+
+	metaData.Lock = lock
+
+	err = saveVMMetaData(name, metaData)
+	if err != nil {
+		return nil, err
+	}
+
+	return metaData, nil
+}
+
 func getVMStatus(name string) string {
 	// VM status not saved in metadata
 	q, _, err := initQMP(getQMPSocketPath(name))
@@ -590,7 +618,15 @@ func UpdateIPAddress() {
 
 // RemoveVM remove VM
 func RemoveVM(name string) error {
-	err := StopVM(name)
+	metaData, err := GetVM(name)
+	if err != nil {
+		return errors.Wrap(err, "RemoveVM: Failed to get VM metadata")
+	}
+	if metaData.Lock {
+		return errors.New("VM is locked")
+	}
+
+	err = StopVM(name)
 	if err != nil {
 		return err
 	}

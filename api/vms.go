@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"minivmm"
@@ -29,6 +30,7 @@ type vm struct {
 	Memory     string `json:"memory"`
 	Disk       string `json:"disk"`
 	Tag        string `json:"tag"`
+	Lock       string `json:"lock"`
 	UserData   string `json:"user_data"`
 }
 
@@ -78,6 +80,7 @@ func ListVMs(w http.ResponseWriter, r *http.Request) {
 			CPU:        metaData.CPU,
 			Memory:     metaData.Memory,
 			Disk:       metaData.Disk,
+			Lock:       strconv.FormatBool(metaData.Lock),
 			Tag:        metaData.Tag,
 		}
 		vms = append(vms, &vm)
@@ -140,6 +143,23 @@ func UpdateVM(w http.ResponseWriter, r *http.Request) {
 
 	if v.CPU != "" || v.Memory != "" || v.Disk != "" {
 		metaData, err := resizeVM(vmName, &v)
+		if err != nil {
+			writeInternalServerError(err, w)
+			return
+		}
+
+		b, _ := json.Marshal(metaData)
+		w.Write(b)
+	}
+
+	if v.Lock != "" {
+		var metaData *minivmm.VMMetaData
+		if v.Lock == "true" {
+			metaData, err = minivmm.LockVM(vmName)
+		} else {
+			metaData, err = minivmm.UnlockVM(vmName)
+		}
+
 		if err != nil {
 			writeInternalServerError(err, w)
 			return
