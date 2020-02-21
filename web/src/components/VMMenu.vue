@@ -3,7 +3,13 @@
     b-dropdown(aria-role="list")
       template(v-slot:trigger)
         b-button(type="is-text" icon-left="dots-horizontal" size="is-small")
-      b-dropdown-item(v-for="(menu, menuIndex) in menuItems" :key="menuIndex" aria-role="listitem" @click="clickMenu(menu)") {{ menu.title }}
+      b-dropdown-item(
+        v-for="(menu, menuIndex) in menuItems"
+        :key="menuIndex"
+        aria-role="listitem"
+        :disabled="menu.title === 'delete' && item.lock === 'true'"
+        @click="clickMenu(menu)"
+      ) {{ menu.title }}
     b-modal(:active.sync="resizeDialog" width="30em" :can-cancel="['escape', 'outside']")
       .modal-card(style="max-width: 30em")
         header.modal-card-head
@@ -39,19 +45,29 @@ export default {
   name: "VMMenu",
   props: ["endpoint", "item"],
   data() {
-    const menuItems = [
-      { title: "start" },
-      { title: "stop" },
-      { title: "resize" },
-      { title: "delete" }
-    ];
 
     return {
-      menuItems: menuItems,
       editedResize: {},
       resizeDialog: false,
       resizeType: ["cpu/memory", "disk"]
     };
+  },
+  computed: {
+    menuItems() {
+      let menuItems = [
+        { title: "start" },
+        { title: "stop" },
+        { title: "resize" },
+        { title: "lock/unlock" },
+        { title: "delete" }
+      ];
+      if (this.item.lock === "true") {
+        menuItems[3].title = "unlock";
+      } else {
+        menuItems[3].title = "lock";
+      }
+      return menuItems;
+    }
   },
   methods: {
     clickMenu(menu) {
@@ -64,6 +80,12 @@ export default {
           break;
         case "resize":
           this.resizeDialog = true;
+          break;
+        case "lock":
+          this.setLockVM("true");
+          break;
+        case "unlock":
+          this.setLockVM("false");
           break;
         case "delete":
           this.deleteVM();
@@ -112,6 +134,24 @@ export default {
     resizeCancel() {
       this.resizeDialog = false;
       this.editedResize = {};
+    },
+    setLockVM(lock) {
+      console.log(this.item);
+      const lockOrUnlock = lock === "true" ? "lock" : "unlock";
+      const infoMsg = `Accepted VM ${lockOrUnlock}`;
+      this.$emit("push-toast", { message: infoMsg, color: "is-info" });
+
+      const url = this.endpoint + `vms/${this.item.name}`;
+      const body = {lock: lock};
+      const errMsg = `Failed to ${lockOrUnlock} VM`;
+      util
+        .callAxios(axios.patch, url, body, errMsg)
+        .catch(msg => {
+          this.$emit("push-toast", msg);
+        })
+        .finally(() => {
+          this.$emit("update-vms");
+        });
     },
     deleteVM() {
       if (confirm("Are you sure you want to delete this item?")) {

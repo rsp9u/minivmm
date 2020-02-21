@@ -6,6 +6,8 @@
     b-table(:data="vms")
       template(v-slot:default="{ row: item }")
         b-table-column(v-for="attr in vmAttrs" :key="attr" :label="attr" :field="attr") {{ item[attr] }}
+        b-table-column(label="lock")
+          b-icon(size="is-small" :icon="item['lock'] === 'true' ? 'lock' : 'lock-open-outline'")
         b-table-column(label="action")
           VMMenu(:endpoint="getAgentEndpoint(item.hypervisor)" :item="item" @push-toast="propagatePushToast")
     b-modal(:active.sync="dialogVisible" width="32em")
