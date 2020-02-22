@@ -4,7 +4,7 @@ USR=minivmm
 CACHE_DIR=$HOME/.cache/minivmm
 
 if [ "$VMMINST_VERSION" = "" ]; then
-  VMMINST_VERSION=$(curl -i https://github.com/rsp9u/minivmm/releases/latest | grep "^Location" | cut -d: -f2- | rev | cut -d/ -f1 | rev | tr -d '\r\n')
+  VMMINST_VERSION=$(curl -i https://github.com/rsp9u/minivmm/releases/latest | grep -i "^location" | cut -d: -f2- | rev | cut -d/ -f1 | rev | tr -d '\r\n')
 fi
 
 if [ $(id -u) -eq 0 ]; then
