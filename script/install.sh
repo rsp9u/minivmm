@@ -19,6 +19,7 @@ export VMM_DIR=${VMM_DIR:-/opt/minivmm}
 export VMM_LISTEN_PORT=${VMM_LISTEN_PORT:-14151}
 export VMM_SUBNET_CIDR=${VMM_SUBNET_CIDR:-192.168.200.0/24}
 export VMM_NAME_SERVERS=${VMM_NAME_SERVERS:-1.1.1.1,1.0.0.1}
+export VMM_VNC_KEYBOARD_LAYOUT=${VMM_VNC_KEYBOARD_LAYOUT:-en-us}
 
 if [ "$VMMINST_UPDATE" != "" ]; then
   $sudo systemctl stop minivmm.service

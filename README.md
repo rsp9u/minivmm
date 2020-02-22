@@ -110,6 +110,7 @@ Open `https://<hostname>:14151` in your browser.
 | VMM_NO_TLS               |              |                 |                    | disable tls if set "1" or "true"                                    |
 | VMM_NO_AUTH              |              |                 |                    | skip API authentication if set "1" or "true"                        |
 | VMM_NO_KVM               |              |                 |                    | disable kvm if set "1" or "true"                                    |
+| VMM_VNC_KEYBOARD_LAYOUT  |              |                 | 'en-us'            | keyboard layout language for VNC                                    |
 
 ## Installer environments
 

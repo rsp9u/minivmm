@@ -136,13 +136,18 @@ func generateQemuParams(qmpSocketPath, driveFilePath, cloudInitISOPath, vmMACAdd
 		params = append(params, "-cpu", "host")
 	}
 
+	envVNCKeyboardLayout := os.Getenv(EnvVNCKeyboardLayout)
+	if envVNCKeyboardLayout == "" {
+		envVNCKeyboardLayout = "en-us"
+	}
+
 	params = append(params, "-drive", fmt.Sprintf("file=%s,if=virtio,cache=none,aio=threads,format=qcow2", driveFilePath))
 	params = append(params, "-cdrom", cloudInitISOPath)
 	params = append(params, "-net", fmt.Sprintf("nic,model=virtio,macaddr=%s", vmMACAddr), "-net", fmt.Sprintf("tap,ifname=%s,script=/tmp/ifup,downscript=/tmp/ifdown", vmIFName))
 	params = append(params, "-daemonize")
 	params = append(params, "-qmp", fmt.Sprintf("unix:%s,server,nowait", qmpSocketPath))
 	params = append(params, "-m", memory, "-smp", fmt.Sprintf("cpus=%s", cpu))
-	params = append(params, "-vnc", "127.0.0.1:0,to=128,password", "-k", "ja")
+	params = append(params, "-vnc", "127.0.0.1:0,to=128,password", "-k", envVNCKeyboardLayout)
 
 	return params
 }

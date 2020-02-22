@@ -32,6 +32,8 @@ const (
 	EnvNoAuth = "VMM_NO_AUTH"
 	// EnvNoKvm is a environment variable key.
 	EnvNoKvm = "VMM_NO_KVM"
+	// EnvVNCKeyboardLayout is a environment variable key.
+	EnvVNCKeyboardLayout = "VMM_VNC_KEYBOARD_LAYOUT"
 )
 
 var (
