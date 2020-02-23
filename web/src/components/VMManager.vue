@@ -53,16 +53,6 @@
           footer.modal-card-foot(style="justify-content: flex-end")
             b-button(@click="clear") Cancel
             b-button(type="is-info" @click="createVM") Create
-    b-modal(:active.sync="vncPopup" width="20em" :can-cancel="false")
-      .modal-card(style="max-width: 20em")
-        header.modal-card-head
-          p.modal-card-title VNC Info
-        section.modal-card-body
-          | Port: {{ vncPort }}
-          br
-          | Password: {{ vncPassword }}
-        footer.modal-card-foot(style="justify-content: flex-end")
-          b-button(type="is-success" @click="vncPopup = false") Close
 </template>
 
 <script>
@@ -95,9 +85,6 @@ export default {
     return {
       vmAttrs: ["name", "status", "hypervisor", "image", "ip", "cpu", "memory", "disk"],
       dialogVisible: false,
-      vncPort: "",
-      vncPassword: "",
-      vncPopup: false,
       editedVM: Object.assign({}, defaultVM),
       defaultVM: defaultVM,
       images: [],
@@ -159,10 +146,8 @@ export default {
       util
         .callAxios(axios.post, url, body, errMsg)
         .then(response => {
-          console.log("then");
-          this.vncPort = response.data.vnc_port;
-          this.vncPassword = response.data.vnc_password;
-          this.vncPopup = true;
+          const successMsg = "Suceeded VM creation";
+          this.$emit("push-toast", { message: successMsg, color: "is-success" });
         })
         .catch(msg => {
           this.$emit("push-toast", msg);
