@@ -3,13 +3,7 @@
     b-dropdown(aria-role="list")
       template(v-slot:trigger)
         b-button(type="is-text" icon-left="dots-horizontal" size="is-small")
-      b-dropdown-item(
-        v-for="(menu, menuIndex) in menuItems"
-        :key="menuIndex"
-        aria-role="listitem"
-        :disabled="menu.title === 'delete' && item.lock === 'true'"
-        @click="clickMenu(menu)"
-      ) {{ menu.title }}
+      b-dropdown-item(v-for="(menu, menuIndex) in menuItems" :key="menuIndex" aria-role="listitem" :disabled="menu.disabled" @click="clickMenu(menu)") {{ menu.title }}
     b-modal(:active.sync="resizeDialog" width="30em" :can-cancel="['escape', 'outside']")
       .modal-card(style="max-width: 30em")
         header.modal-card-head
@@ -54,19 +48,31 @@ export default {
   },
   computed: {
     menuItems() {
-      let menuItems = [
-        { title: "start" },
-        { title: "stop" },
-        { title: "resize" },
-        { title: "lock/unlock" },
-        { title: "delete" }
+      let items = [
+        { title: "start", disabled: false },
+        { title: "stop", disabled: false },
+        { title: "resize", disabled: false },
+        { title: "lock/unlock", disabled: false },
+        { title: "delete", disabled: false }
       ];
       if (this.item.lock === "true") {
-        menuItems[3].title = "unlock";
+        items[3].title = "unlock";
       } else {
-        menuItems[3].title = "lock";
+        items[3].title = "lock";
       }
-      return menuItems;
+      if (this.item.status === "running") {
+        items[0].disabled = true;
+      }
+      if (this.item.status === "stopped") {
+        items[1].disabled = true;
+      }
+      if (this.item.status !== "stopped") {
+        items[2].disabled = true;
+      }
+      if (this.item.lock === "true") {
+        items[4].disabled = true;
+      }
+      return items;
     }
   },
   methods: {
