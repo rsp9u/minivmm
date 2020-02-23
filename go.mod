@@ -13,6 +13,7 @@ require (
 	github.com/rsp9u/go-oidc v2.1.2+incompatible
 	github.com/yaamai/govmm v0.2.0
 	golang.org/x/crypto v0.0.0-20191111213947-16651526fdb4 // indirect
+	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	gopkg.in/square/go-jose.v2 v2.4.0 // indirect
 )
