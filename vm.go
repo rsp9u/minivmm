@@ -317,7 +317,7 @@ func CreateVM(name, owner, imageName, cpu, memory, disk, userData, tag string) (
 	}
 
 	defer func() {
-		if retErr != nil {
+		if retErr != nil && name != "" {
 			rmErr := os.RemoveAll(filepath.Join(VMDir, name))
 			if rmErr != nil {
 				log.Println("Ignore RemoveAll error:", rmErr)
