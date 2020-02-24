@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
 	"minivmm"
 )
@@ -64,14 +65,32 @@ func HandshakeWsVNC(config *websocket.Config, r *http.Request) error {
 	}
 	log.Printf("ws connect query name=%s\n", vmName)
 
+	vmMetaData, err := minivmm.GetVM(vmName)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("no such a VM named '%s'", vmName))
+	}
+
 	config.Protocol = []string{"binary"}
 
 	envNoAuth := os.Getenv(minivmm.EnvNoAuth)
 	if envNoAuth != "1" && envNoAuth != "true" {
-		// TODO: Impl verification of the access token.
-		msg := "failed to verify the access token"
-		log.Println(msg)
-		return fmt.Errorf(msg)
+		// get access token
+		cookie, err := r.Cookie(minivmm.CookieName)
+		if err != nil {
+			return errors.Wrap(err, "failed to get the access token from cookie")
+		}
+		token := cookie.Value
+
+		// verify token
+		payload, err := minivmm.VerifyToken(token)
+		if err != nil {
+			return errors.Wrap(err, "failed to verify the access token")
+		}
+
+		// check ownership for VM
+		if vmMetaData.Owner != payload.Subject {
+			return fmt.Errorf("forbidden")
+		}
 	}
 
 	log.Printf("ws connected name=%s\n", vmName)
