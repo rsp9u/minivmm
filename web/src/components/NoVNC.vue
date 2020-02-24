@@ -25,11 +25,6 @@ export default {
       let url = `${util.locationOrigin()}/ws/vnc?name=${this.$route.query.name}`.replace(/^http/, "ws");
       this.rfb = new RFB(el, url)
     });
-  },
-  methods: {
-    disconnect() {
-      this.rfb.connect();
-    }
   }
 }
 </script>
