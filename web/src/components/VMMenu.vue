@@ -49,29 +49,31 @@ export default {
   computed: {
     menuItems() {
       let items = [
-        { title: "start", disabled: false },
-        { title: "stop", disabled: false },
-        { title: "resize", disabled: false },
-        { title: "lock/unlock", disabled: false },
-        { title: "delete", disabled: false }
+        {
+          title: "start",
+          disabled: this.item.status === "running"
+        },
+        {
+          title: "stop",
+          disabled: this.item.status === "stopped"
+        },
+        {
+          title: "vnc",
+          disabled: this.item.status !== "running"
+        },
+        {
+          title: "resize",
+          disabled: this.item.status !== "stopped"
+        },
+        {
+          title: this.item.lock === "true" ? "unlock" : "lock",
+          disabled: false
+        },
+        {
+          title: "delete",
+          disabled: this.item.lock === "true"
+        }
       ];
-      if (this.item.lock === "true") {
-        items[3].title = "unlock";
-      } else {
-        items[3].title = "lock";
-      }
-      if (this.item.status === "running") {
-        items[0].disabled = true;
-      }
-      if (this.item.status === "stopped") {
-        items[1].disabled = true;
-      }
-      if (this.item.status !== "stopped") {
-        items[2].disabled = true;
-      }
-      if (this.item.lock === "true") {
-        items[4].disabled = true;
-      }
       return items;
     }
   },
@@ -83,6 +85,9 @@ export default {
           break;
         case "stop":
           this.stopVM();
+          break;
+        case "vnc":
+          this.openVNC();
           break;
         case "resize":
           this.resizeDialog = true;
@@ -107,6 +112,10 @@ export default {
     stopVM() {
       console.log(this.item);
       this.updateVMStatus(this.item.name, "stop");
+    },
+    openVNC() {
+      let route = this.$router.resolve({name: 'vnc', query: {name: this.item.name}});
+      window.open(route.href, '_blank');
     },
     updateVMStatus(name, status) {
       const url = this.endpoint + `vms/${name}`;

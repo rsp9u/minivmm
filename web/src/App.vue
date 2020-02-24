@@ -11,4 +11,8 @@ $dropdown-menu-min-width: 3em;
 // Import Bulma and Buefy styles
 @import "~bulma";
 @import "~buefy/src/scss/buefy";
+
+html, body {
+  height: 100%;
+}
 </style>
