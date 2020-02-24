@@ -66,7 +66,7 @@ export default {
   data() {
     return {
       fwAttrs: ["proto", "translation", "description"],
-      fwTypes: ["http/https", "ssh", "vnc"],
+      fwTypes: ["http/https", "ssh"],
       dialogVisible: false,
       editedFw: { proto: "tcp" },
       protocols: ["tcp", "udp"]
@@ -77,7 +77,7 @@ export default {
       return this.agents.map(x => x.name);
     },
     vmNames() {
-      return ["localhost"].concat(this.vms.map(x => x.name));
+      return this.vms.map(x => x.name);
     },
     fwsView() {
       return this.fws.map(origFw => {

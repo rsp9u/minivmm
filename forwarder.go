@@ -17,7 +17,7 @@ import (
 var (
 	stopChannels = make(map[string]chan struct{})
 
-	nameToIP   = map[string]string{"localhost": "127.0.0.1"}
+	nameToIP   = map[string]string{}
 	ipChannels = make(map[string]map[string]chan struct{})
 )
 
