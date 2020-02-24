@@ -12,6 +12,8 @@ import (
 	"github.com/rs/cors"
 	"minivmm"
 	"minivmm/api"
+	"minivmm/ws"
+
 	_ "minivmm/statik"
 )
 
@@ -75,6 +77,7 @@ func server() {
 	}
 
 	api.RegisterHandlers(mux)
+	ws.RegisterHandlers(mux)
 	c := cors.New(cors.Options{
 		AllowedOrigins:   corsAllowedOrigins,
 		AllowCredentials: true,

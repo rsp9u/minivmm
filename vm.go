@@ -22,6 +22,7 @@ import (
 
 var (
 	qmpSocketFileName         = "qmp.socket"
+	vncSocketFileName         = "vnc.socket"
 	vmMetaDataFileName        = "metadata.json"
 	cloudInitISOFileName      = "cloud-init.iso"
 	cloudInitUserDataFileName = "user-data"
@@ -127,7 +128,7 @@ func convertSIPrefixedMemorySize(prefixedValue string) (string, error) {
 	return "", errors.New("Not supported prefix")
 }
 
-func generateQemuParams(qmpSocketPath, driveFilePath, cloudInitISOPath, vmMACAddr, vmIFSetupScriptPath, vmIFName, cpu, memory string) []string {
+func generateQemuParams(qmpSocketPath, vncSocketPath, driveFilePath, cloudInitISOPath, vmMACAddr, vmIFSetupScriptPath, vmIFName, cpu, memory string) []string {
 	params := make([]string, 0, 32)
 
 	envNoKvm := os.Getenv(EnvNoKvm)
@@ -147,7 +148,8 @@ func generateQemuParams(qmpSocketPath, driveFilePath, cloudInitISOPath, vmMACAdd
 	params = append(params, "-daemonize")
 	params = append(params, "-qmp", fmt.Sprintf("unix:%s,server,nowait", qmpSocketPath))
 	params = append(params, "-m", memory, "-smp", fmt.Sprintf("cpus=%s", cpu))
-	params = append(params, "-vnc", "127.0.0.1:0,to=128,password", "-k", envVNCKeyboardLayout)
+	params = append(params, "-vnc", fmt.Sprintf("unix:%s", vncSocketPath))
+	params = append(params, "-k", envVNCKeyboardLayout)
 
 	return params
 }
@@ -207,6 +209,10 @@ func getQMPSocketPath(name string) string {
 	return filepath.Join(VMDir, name, qmpSocketFileName)
 }
 
+func getVNCSocketPath(name string) string {
+	return filepath.Join(VMDir, name, vncSocketFileName)
+}
+
 func generateRandomPassword() (string, error) {
 	b := make([]byte, 8)
 	_, err := rand.Read(b)
@@ -215,23 +221,6 @@ func generateRandomPassword() (string, error) {
 	}
 
 	return base64.URLEncoding.EncodeToString(b), err
-}
-
-// SetVncPassword sets VNC password of the specified VM.
-func SetVncPassword(name, password string) error {
-	q, _, err := initQMP(getQMPSocketPath(name))
-	if err != nil {
-		return errors.Wrap(err, "QMP connection failed")
-	}
-
-	vncPasswordArg := map[string]interface{}{"protocol": "vnc", "password": password}
-	_, err = q.ExecuteRawCommand(context.Background(), "set_password", vncPasswordArg, nil)
-	if err != nil {
-		return errors.Wrap(err, "set_password command failed")
-	}
-	q.Shutdown()
-
-	return nil
 }
 
 // GetVncPort returns VNC port number of the specified VM.
@@ -419,6 +408,7 @@ func StopVM(name string) error {
 func prepareStartVM(name string, metaData *VMMetaData) ([]string, error) {
 	// vmIFSetupScriptPath := filepath.Join(VMDir, name, "ifup")
 	qmpSocketPath := getQMPSocketPath(name)
+	vncSocketPath := getVNCSocketPath(name)
 	vmIFSetupScriptPath := filepath.Join("/tmp", "ifup")
 	vmIFCleanupScriptPath := filepath.Join("/tmp", "ifdown")
 	driveFilePath := metaData.Volume
@@ -431,7 +421,7 @@ func prepareStartVM(name string, metaData *VMMetaData) ([]string, error) {
 	}
 	vmIFName := fmt.Sprintf("tap-%s", name)
 	prepareVMIF(vmIFName)
-	qemuParams := generateQemuParams(qmpSocketPath, driveFilePath, cloudInitISOPath, vmMACAddr, vmIFSetupScriptPath, vmIFName, cpu, memory)
+	qemuParams := generateQemuParams(qmpSocketPath, vncSocketPath, driveFilePath, cloudInitISOPath, vmMACAddr, vmIFSetupScriptPath, vmIFName, cpu, memory)
 
 	log.Println("Prepare if script ...")
 	err = generateVMIFSetupScript(vmIFSetupScriptPath)
@@ -464,11 +454,6 @@ func StartVM(name string) (*VMMetaData, error) {
 	if err != nil {
 		log.Println(stdErr)
 		return nil, errors.Wrap(err, "StartVM: VM launch failed")
-	}
-
-	err = SetVncPassword(name, metaData.VNCPassword)
-	if err != nil {
-		return nil, err
 	}
 
 	port, err := GetVncPort(name)
