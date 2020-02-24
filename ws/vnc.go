@@ -54,6 +54,15 @@ func HandleWsVNC(wsconn *websocket.Conn) {
 
 // HandshakeWsVNC checks parameters and authorizes the websocket connection request.
 func HandshakeWsVNC(config *websocket.Config, r *http.Request) error {
+	err := handshakeWsVNC(config, r)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
+}
+
+func handshakeWsVNC(config *websocket.Config, r *http.Request) error {
 	// TODO: remove debug log
 	for k, v := range r.Header {
 		log.Printf("ws connect header {%s: %s}\n", k, v)
