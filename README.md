@@ -95,6 +95,12 @@ Open `https://<hostname>:14151` in your browser.
 
 ## Environments
 
+If you'd like to change environment variables, edit `$VMM_DIR/minivmm.environment` and restart `minivmm` service, like below;
+```
+# vi /opt/minivmm/minivmm.environment
+# systemctl restart minivmm.service
+```
+
 | Name                     | Required(ui) | Required(no-ui) | Default            | Description                                                         |
 |--------------------------|--------------|-----------------|--------------------|---------------------------------------------------------------------|
 | VMM_DIR                  | yes          | yes             | '/opt/minivmm'     | base directory path to store state files                            |
