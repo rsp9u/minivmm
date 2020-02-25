@@ -148,12 +148,6 @@ export default {
         .then(response => {
           const successMsg = "Suceeded VM creation";
           this.$emit("push-toast", { message: successMsg, color: "is-success" });
-        })
-        .catch(msg => {
-          this.$emit("push-toast", msg);
-        })
-        .finally(() => {
-          console.log("finally");
           if (this.editedVM.ssh_fw) {
             const fw = {
               hypervisor: this.editedVM.hypervisor,
@@ -166,6 +160,12 @@ export default {
             };
             this.$emit("add-forward", fw);
           }
+        })
+        .catch(msg => {
+          this.$emit("push-toast", msg);
+        })
+        .finally(() => {
+          console.log("finally");
           this.clear();
           this.$emit("update-vms");
         });
