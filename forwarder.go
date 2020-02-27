@@ -330,7 +330,7 @@ func ReadAllForwardFiles() ([]*ForwardMetaData, error) {
 	var ret []*ForwardMetaData
 	for _, f := range dirEntries {
 		if !f.IsDir() {
-			fw, err := readForwardFile(f.Name())
+			fw, err := readForwardFileByID(f.Name())
 			if err != nil {
 				log.Println("Ignore ReadForwardFile error:", err)
 				continue
@@ -342,7 +342,12 @@ func ReadAllForwardFiles() ([]*ForwardMetaData, error) {
 	return ret, nil
 }
 
-func readForwardFile(id string) (*ForwardMetaData, error) {
+// ReadForwardFile returns a forwarding setting.
+func ReadForwardFile(proto, fromPort string) (*ForwardMetaData, error) {
+	return readForwardFileByID(generateForwardID(proto, fromPort))
+}
+
+func readForwardFileByID(id string) (*ForwardMetaData, error) {
 	fw := ForwardMetaData{}
 	b, err := ioutil.ReadFile(filepath.Join(C.ForwardDir, id))
 	if err != nil {

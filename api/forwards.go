@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -85,7 +86,12 @@ func CreateForward(w http.ResponseWriter, r *http.Request) {
 func DeleteForward(w http.ResponseWriter, r *http.Request) {
 	f := parseForwardBody(r.Body)
 
-	err := minivmm.StopForward(f.Proto, f.FromPort)
+	err := restrictForwardOperationByOwner(w, r, f.Proto, f.FromPort)
+	if err != nil {
+		return
+	}
+
+	err = minivmm.StopForward(f.Proto, f.FromPort)
 	if err != nil {
 		writeInternalServerError(err, w)
 		return
@@ -96,4 +102,19 @@ func DeleteForward(w http.ResponseWriter, r *http.Request) {
 		writeInternalServerError(err, w)
 		return
 	}
+}
+
+func restrictForwardOperationByOwner(w http.ResponseWriter, r *http.Request, proto, fromPort string) error {
+	metaData, err := minivmm.ReadForwardFile(proto, fromPort)
+	if err != nil {
+		writeInternalServerError(err, w)
+		return err
+	}
+
+	if metaData.Owner != minivmm.GetUserName(r) {
+		writeForbidden(w)
+		return fmt.Errorf("forbidden")
+	}
+
+	return nil
 }

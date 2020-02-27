@@ -117,6 +117,11 @@ func UpdateVM(w http.ResponseWriter, r *http.Request) {
 	paths := strings.Split(r.URL.String(), "/")
 	vmName := paths[len(paths)-1]
 
+	err := restrictVMOperationByOwner(w, r, vmName)
+	if err != nil {
+		return
+	}
+
 	body := r.Body
 	defer body.Close()
 
@@ -126,8 +131,6 @@ func UpdateVM(w http.ResponseWriter, r *http.Request) {
 	var v vm
 	json.Unmarshal(buf.Bytes(), &v)
 	fmt.Printf("%v\n", v)
-
-	var err error = nil
 
 	if v.Status != "" {
 		if v.Status == "start" {
@@ -174,7 +177,13 @@ func UpdateVM(w http.ResponseWriter, r *http.Request) {
 func RemoveVM(w http.ResponseWriter, r *http.Request) {
 	paths := strings.Split(r.URL.String(), "/")
 	vmName := paths[len(paths)-1]
-	err := minivmm.RemoveVM(vmName)
+
+	err := restrictVMOperationByOwner(w, r, vmName)
+	if err != nil {
+		return
+	}
+
+	err = minivmm.RemoveVM(vmName)
 	if err != nil {
 		writeInternalServerError(err, w)
 		return
@@ -208,4 +217,19 @@ func resizeVM(vmName string, v *vm) (*minivmm.VMMetaData, error) {
 	}
 
 	return metaData, nil
+}
+
+func restrictVMOperationByOwner(w http.ResponseWriter, r *http.Request, vmName string) error {
+	metaData, err := minivmm.GetVM(vmName)
+	if err != nil {
+		writeInternalServerError(err, w)
+		return err
+	}
+
+	if metaData.Owner != minivmm.GetUserName(r) {
+		writeForbidden(w)
+		return fmt.Errorf("forbidden")
+	}
+
+	return nil
 }
