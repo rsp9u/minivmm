@@ -1,6 +1,8 @@
 package minivmm
 
 import (
+	"path/filepath"
+
 	"github.com/caarlos0/env"
 )
 
@@ -13,13 +15,17 @@ type Config struct {
 	Agents            []string `env:"VMM_AGENTS" envSeparator:","`
 	CorsOrigins       []string `env:"VMM_CORS_ALLOWED_ORIGINS" envSeparator:","`
 	SubnetCIDR        string   `env:"VMM_SUBNET_CIDR"`
-    NameServers       []string `env:"VMM_NAME_SERVERS" envDefault:"1.1.1.1,1.0.0.1" envSeparator:","`
+	NameServers       []string `env:"VMM_NAME_SERVERS" envDefault:"1.1.1.1,1.0.0.1" envSeparator:","`
 	ServerCert        string   `env:"VMM_SERVER_CERT"`
 	ServerKey         string   `env:"VMM_SERVER_KEY"`
 	NoTLS             bool     `env:"VMM_NO_TLS" envDefault:"false"`
 	NoAuth            bool     `env:"VMM_NO_AUTH" envDefault:"false"`
 	NoKvm             bool     `env:"VMM_NO_KVM" envDefault:"false"`
 	VNCKeyboardLayout string   `env:"VMM_VNC_KEYBOARD_LAYOUT" envDefault:"en-us"`
+
+	VMDir      string
+	ImageDir   string
+	ForwardDir string
 }
 
 // C is a global configuration object.
@@ -31,6 +37,10 @@ func ParseConfig() error {
 	if err := env.Parse(&c); err != nil {
 		return err
 	}
+	c.VMDir = filepath.Join(c.Dir, "vms")
+	c.ImageDir = filepath.Join(c.Dir, "images")
+	c.ForwardDir = filepath.Join(c.Dir, "forwards")
+
 	C = &c
 	return nil
 }

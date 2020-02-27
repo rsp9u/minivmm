@@ -2,11 +2,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/rakyll/statik/fs"
 	"github.com/rs/cors"
@@ -21,13 +21,6 @@ var (
 	ui      = flag.Bool("ui", false, "enable to provide ui pages")
 	initNw  = flag.Bool("init-nw", false, "initialize network settings")
 	resetNw = flag.Bool("reset-nw", false, "clean up network settings")
-)
-
-var (
-	serverCert         = os.Getenv(minivmm.EnvServerCert)
-	serverKey          = os.Getenv(minivmm.EnvServerKey)
-	listenPort         = os.Getenv(minivmm.EnvPort)
-	corsAllowedOrigins = strings.Split(os.Getenv(minivmm.EnvCorsOrigins), ",")
 )
 
 // DefaultedFileSystem is a file system with fallback url.
@@ -48,9 +41,9 @@ func (f DefaultedFileSystem) Open(name string) (http.File, error) {
 
 func ensureDir() error {
 	dirs := []string{
-		filepath.Join(os.Getenv(minivmm.EnvDir), "forwards"),
-		filepath.Join(os.Getenv(minivmm.EnvDir), "images"),
-		filepath.Join(os.Getenv(minivmm.EnvDir), "vms"),
+		filepath.Join(minivmm.C.Dir, "forwards"),
+		filepath.Join(minivmm.C.Dir, "images"),
+		filepath.Join(minivmm.C.Dir, "vms"),
 	}
 	for _, dir := range dirs {
 		err := os.MkdirAll(dir, os.ModePerm)
@@ -62,10 +55,6 @@ func ensureDir() error {
 }
 
 func server() {
-	if listenPort == "" {
-		panic("Set VMM_LISTEN_PORT")
-	}
-
 	mux := http.NewServeMux()
 	if *ui {
 		log.Println("Into ui mode..")
@@ -79,7 +68,7 @@ func server() {
 	api.RegisterHandlers(mux)
 	ws.RegisterHandlers(mux)
 	c := cors.New(cors.Options{
-		AllowedOrigins:   corsAllowedOrigins,
+		AllowedOrigins:   minivmm.C.CorsOrigins,
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"authorization", "content-type"},
 		AllowedMethods:   []string{"GET", "POST", "DELETE", "PATCH"},
@@ -91,32 +80,36 @@ func server() {
 	go minivmm.UpdateIPAddress()
 
 	log.Println("Starting minivm..")
-	envNoTLS := os.Getenv(minivmm.EnvNoTLS)
-	if envNoTLS == "1" || envNoTLS == "true" {
-		log.Fatal(http.ListenAndServe(":"+os.Getenv(minivmm.EnvPort), handler))
+	if minivmm.C.NoTLS {
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", minivmm.C.Port), handler))
 	} else {
-		log.Fatal(http.ListenAndServeTLS(":"+os.Getenv(minivmm.EnvPort), serverCert, serverKey, handler))
+		log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%d", minivmm.C.Port), minivmm.C.ServerCert, minivmm.C.ServerKey, handler))
 	}
 }
 
 func main() {
+	err := minivmm.ParseConfig()
+	if err != nil {
+		panic(err)
+	}
+
 	flag.Parse()
 	if *initNw {
-		err := minivmm.InitNetns()
+		err = minivmm.InitNetns()
 		if err != nil {
 			log.Println(err)
 		}
 		return
 	}
 	if *resetNw {
-		err := minivmm.ResetNetns()
+		err = minivmm.ResetNetns()
 		if err != nil {
 			panic(err)
 		}
 		return
 	}
 
-	err := minivmm.StartNetwork()
+	err = minivmm.StartNetwork()
 	if err != nil {
 		log.Fatal(err)
 	}

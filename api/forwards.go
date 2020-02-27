@@ -6,13 +6,8 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"path/filepath"
 
 	"minivmm"
-)
-
-var (
-	recordPath = filepath.Join(minivmm.ForwardDir, "forward.json")
 )
 
 func parseForwardBody(body io.ReadCloser) *minivmm.ForwardMetaData {

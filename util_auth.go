@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -73,10 +72,10 @@ func VerifyToken(token string) (*JWTPayload, error) {
 
 // SetupOIDCProvider returns OIDC configurations.
 func SetupOIDCProvider(ctx context.Context) (*oauth2.Config, *oidc.Provider, *oidc.IDTokenVerifier, error) {
-	redirectURL := os.Getenv(EnvOrigin) + "/api/v1/login"
+	redirectURL := C.Origin + "/api/v1/login"
 
 	// set up
-	iss := os.Getenv(EnvOIDC) + "/"
+	iss := C.OIDC + "/"
 	provider, err := oidc.NewProvider(ctx, iss)
 	if err != nil {
 		return nil, nil, nil, errors.New("Failed to set up OIDC provider")

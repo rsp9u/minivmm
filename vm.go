@@ -131,16 +131,12 @@ func convertSIPrefixedMemorySize(prefixedValue string) (string, error) {
 func generateQemuParams(qmpSocketPath, vncSocketPath, driveFilePath, cloudInitISOPath, vmMACAddr, vmIFSetupScriptPath, vmIFName, cpu, memory string) []string {
 	params := make([]string, 0, 32)
 
-	envNoKvm := os.Getenv(EnvNoKvm)
-	if !(envNoKvm == "1" || envNoKvm == "true") {
+	if !C.NoKvm {
 		params = append(params, "--enable-kvm")
 		params = append(params, "-cpu", "host")
 	}
 
-	envVNCKeyboardLayout := os.Getenv(EnvVNCKeyboardLayout)
-	if envVNCKeyboardLayout == "" {
-		envVNCKeyboardLayout = "en-us"
-	}
+	envVNCKeyboardLayout := C.VNCKeyboardLayout
 
 	params = append(params, "-drive", fmt.Sprintf("file=%s,if=virtio,cache=none,aio=threads,format=qcow2", driveFilePath))
 	params = append(params, "-cdrom", cloudInitISOPath)
@@ -206,11 +202,11 @@ func initQMP(qmpSocketPath string) (*qemu.QMP, chan struct{}, error) {
 }
 
 func getQMPSocketPath(name string) string {
-	return filepath.Join(VMDir, name, qmpSocketFileName)
+	return filepath.Join(C.VMDir, name, qmpSocketFileName)
 }
 
 func getVNCSocketPath(name string) string {
-	return filepath.Join(VMDir, name, vncSocketFileName)
+	return filepath.Join(C.VMDir, name, vncSocketFileName)
 }
 
 func generateRandomPassword() (string, error) {
@@ -253,7 +249,7 @@ func saveVMMetaData(name string, metaData *VMMetaData) error {
 		return err
 	}
 
-	vmDataDir := filepath.Join(VMDir, name)
+	vmDataDir := filepath.Join(C.VMDir, name)
 	os.MkdirAll(vmDataDir, os.ModePerm)
 	metaDataPath := filepath.Join(vmDataDir, vmMetaDataFileName)
 	f, err := os.OpenFile(metaDataPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
@@ -272,7 +268,7 @@ func saveVMMetaData(name string, metaData *VMMetaData) error {
 }
 
 func loadVMMetaData(name string) (*VMMetaData, error) {
-	metaDataPath := filepath.Join(VMDir, name, vmMetaDataFileName)
+	metaDataPath := filepath.Join(C.VMDir, name, vmMetaDataFileName)
 	vmMetaData := VMMetaData{}
 
 	metaDataByte, err := ioutil.ReadFile(metaDataPath)
@@ -312,28 +308,28 @@ func createCloudInitISO(cloudInitFilesPath, isoPath, name, userData string) erro
 
 // CreateVM creates new VM and starts it.
 func CreateVM(name, owner, imageName, cpu, memory, disk, userData, tag string) (ret *VMMetaData, retErr error) {
-	if exists(filepath.Join(VMDir, name, vmMetaDataFileName)) {
+	if exists(filepath.Join(C.VMDir, name, vmMetaDataFileName)) {
 		return nil, errors.Errorf("CreateVM: VM '%s' already exists", name)
 	}
 
 	defer func() {
 		if retErr != nil && name != "" {
-			rmErr := os.RemoveAll(filepath.Join(VMDir, name))
+			rmErr := os.RemoveAll(filepath.Join(C.VMDir, name))
 			if rmErr != nil {
 				log.Println("Ignore RemoveAll error:", rmErr)
 			}
 		}
 	}()
 
-	vmDataDir := filepath.Join(VMDir, name)
+	vmDataDir := filepath.Join(C.VMDir, name)
 	driveFilePath, err := CreateImage(name, disk, imageName, vmDataDir)
 	if err != nil {
 		return nil, err
 	}
 
 	// to support cloud-init, generate userdata ISO
-	isoFilePath := filepath.Join(VMDir, name, cloudInitISOFileName)
-	userDataPath := filepath.Join(VMDir, name)
+	isoFilePath := filepath.Join(C.VMDir, name, cloudInitISOFileName)
+	userDataPath := filepath.Join(C.VMDir, name)
 	err = createCloudInitISO(userDataPath, isoFilePath, name, userData)
 	if err != nil {
 		return nil, err
@@ -565,7 +561,7 @@ func GetVMFromMac(mac string) (*VMMetaData, error) {
 
 // ListVMs returns a list of VM metadata.
 func ListVMs() ([]*VMMetaData, error) {
-	dirEntries, err := ioutil.ReadDir(VMDir)
+	dirEntries, err := ioutil.ReadDir(C.VMDir)
 	if err != nil {
 		return nil, errors.Wrap(err, "ListVMs: Cannot read vm data dir")
 	}
@@ -637,7 +633,7 @@ func RemoveVM(name string) error {
 		}
 	}
 
-	vmDataDir := filepath.Join(VMDir, name)
+	vmDataDir := filepath.Join(C.VMDir, name)
 	err = os.RemoveAll(vmDataDir)
 	return err
 }

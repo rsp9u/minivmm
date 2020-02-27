@@ -295,7 +295,7 @@ func UpdateIPAddressInForwarder(name, ip string) {
 // WriteForwardFile creates or updates the forwarding settings file.
 // The file name will be joined string of protocol and listen port.
 func WriteForwardFile(fw *ForwardMetaData) error {
-	recordPath := filepath.Join(ForwardDir, generateForwardID(fw.Proto, fw.FromPort)+".json")
+	recordPath := filepath.Join(C.ForwardDir, generateForwardID(fw.Proto, fw.FromPort)+".json")
 
 	f, err := os.OpenFile(recordPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
@@ -316,13 +316,13 @@ func WriteForwardFile(fw *ForwardMetaData) error {
 
 // RemoveForwardFile removes a forwarding settings file.
 func RemoveForwardFile(fw *ForwardMetaData) error {
-	recordPath := filepath.Join(ForwardDir, generateForwardID(fw.Proto, fw.FromPort)+".json")
+	recordPath := filepath.Join(C.ForwardDir, generateForwardID(fw.Proto, fw.FromPort)+".json")
 	return os.Remove(recordPath)
 }
 
 // ReadAllForwardFiles returns a list of forwarding settings.
 func ReadAllForwardFiles() ([]*ForwardMetaData, error) {
-	dirEntries, err := ioutil.ReadDir(ForwardDir)
+	dirEntries, err := ioutil.ReadDir(C.ForwardDir)
 	if err != nil {
 		return nil, err
 	}
@@ -344,7 +344,7 @@ func ReadAllForwardFiles() ([]*ForwardMetaData, error) {
 
 func readForwardFile(id string) (*ForwardMetaData, error) {
 	fw := ForwardMetaData{}
-	b, err := ioutil.ReadFile(filepath.Join(ForwardDir, id))
+	b, err := ioutil.ReadFile(filepath.Join(C.ForwardDir, id))
 	if err != nil {
 		return nil, err
 	}

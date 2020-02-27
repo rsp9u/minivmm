@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/pkg/errors"
@@ -25,8 +24,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 }
 
 func auth(r *http.Request) (bool, *http.Request) {
-	envNoAuth := os.Getenv(minivmm.EnvNoAuth)
-	if envNoAuth == "1" || envNoAuth == "true" {
+	if minivmm.C.NoAuth {
 		newCtx := minivmm.SetUserName(r, "dummy.user")
 		newReq := r.WithContext(newCtx)
 		return true, newReq
@@ -64,7 +62,7 @@ func redirectToAuthURL(w http.ResponseWriter, r *http.Request) {
 
 // HandleAuth redirects to the main page if authentication is successful.
 func HandleAuth(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, os.Getenv(minivmm.EnvOrigin), 302)
+	http.Redirect(w, r, minivmm.C.Origin, 302)
 }
 
 // HandleOIDCCallback obtains and verifies OIDC tokens, and set the access token to client.
@@ -85,7 +83,7 @@ func HandleOIDCCallback(w http.ResponseWriter, r *http.Request) {
 		Secure: true,
 	}
 	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, os.Getenv(minivmm.EnvOrigin), 302)
+	http.Redirect(w, r, minivmm.C.Origin, 302)
 }
 
 func generateToken(authCode string) (*oidc.IDToken, string, error) {

@@ -2,7 +2,6 @@ package minivmm
 
 import (
 	"net"
-	"os"
 
 	"github.com/apparentlymart/go-cidr/cidr"
 )
@@ -20,7 +19,7 @@ var (
 )
 
 func newNetworkInfo() (*vmNetworkInfo, error) {
-	_, cidrIPNet, err := net.ParseCIDR(os.Getenv(EnvSubnetCIDR))
+	_, cidrIPNet, err := net.ParseCIDR(C.SubnetCIDR)
 	if err != nil {
 		return nil, err
 	}
