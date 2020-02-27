@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"path/filepath"
 
 	"github.com/pkg/errors"
@@ -20,7 +19,7 @@ func HandleWsVNC(wsconn *websocket.Conn) {
 
 	// get the destination VM name
 	vmName := wsconn.Request().URL.Query().Get("name")
-	vncSocketPath := filepath.Join(minivmm.VMDir, vmName, "vnc.socket")
+	vncSocketPath := filepath.Join(minivmm.C.VMDir, vmName, "vnc.socket")
 
 	// connect to vnc socket
 	vncconn, err := net.Dial("unix", vncSocketPath)
@@ -76,8 +75,7 @@ func handshakeWsVNC(config *websocket.Config, r *http.Request) error {
 
 	config.Protocol = []string{"binary"}
 
-	envNoAuth := os.Getenv(minivmm.EnvNoAuth)
-	if envNoAuth != "1" && envNoAuth != "true" {
+	if !minivmm.C.NoAuth {
 		// get access token
 		cookie, err := r.Cookie(minivmm.CookieName)
 		if err != nil {

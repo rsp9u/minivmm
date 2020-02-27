@@ -90,9 +90,6 @@ This is a minimal and lightweight virtual machine manager.
 # curl -Lo - https://github.com/rsp9u/minivmm/releases/latest/download/install.sh | sh -
 ```
 
-## Using Web UI
-Open `https://<hostname>:14151` in your browser.
-
 ## Environments
 
 If you'd like to change environment variables, edit `$VMM_DIR/minivmm.environment` and restart `minivmm` service, like below;
@@ -101,22 +98,22 @@ If you'd like to change environment variables, edit `$VMM_DIR/minivmm.environmen
 # systemctl restart minivmm.service
 ```
 
-| Name                     | Required(ui) | Required(no-ui) | Default            | Description                                                         |
-|--------------------------|--------------|-----------------|--------------------|---------------------------------------------------------------------|
-| VMM_DIR                  | yes          | yes             | '/opt/minivmm'     | base directory path to store state files                            |
-| VMM_ORIGIN               | yes          |                 |                    | origin url of minivmm server                                        |
-| VMM_OIDC_URL             | yes          | yes             |                    | oidc auth url                                                       |
-| VMM_LISTEN_PORT          | yes          | yes             | '14151'            | listen port                                                         |
-| VMM_AGENTS               | yes          |                 |                    | agents' API endpoint (comma separated)                              |
-| VMM_CORS_ALLOWED_ORIGINS |              | yes             |                    | allowed origin urls (comma separated)                               |
-| VMM_SUBNET_CIDR          | yes          | yes             | '192.168.200.0/24' | subnet CIDR for the network containing VMs                          |
-| VMM_NAME_SERVERS         | yes          | yes             | '1.1.1.1,1.0.0.1'  | domain name servers' address sent via DHCP server (comma separated) |
-| VMM_SERVER_CERT          | yes          | yes             |                    | path to the server certificate file                                 |
-| VMM_SERVER_KEY           | yes          | yes             |                    | path to the server private key file                                 |
-| VMM_NO_TLS               |              |                 |                    | disable tls if set "1" or "true"                                    |
-| VMM_NO_AUTH              |              |                 |                    | skip API authentication if set "1" or "true"                        |
-| VMM_NO_KVM               |              |                 |                    | disable kvm if set "1" or "true"                                    |
-| VMM_VNC_KEYBOARD_LAYOUT  |              |                 | 'en-us'            | keyboard layout language for VNC                                    |
+| Name                     | Default            | Description                                                         |
+|--------------------------|--------------------|---------------------------------------------------------------------|
+| VMM_DIR                  | '/opt/minivmm'     | base directory path to store data files                             |
+| VMM_LISTEN_PORT          | '14151'            | listen port                                                         |
+| VMM_ORIGIN               |                    | origin url of minivmm server                                        |
+| VMM_OIDC_URL             |                    | oidc auth url                                                       |
+| VMM_AGENTS               |                    | agents' API endpoint (comma separated)                              |
+| VMM_CORS_ALLOWED_ORIGINS |                    | allowed origin urls (comma separated)                               |
+| VMM_SUBNET_CIDR          | '192.168.200.0/24' | subnet CIDR for the network containing VMs                          |
+| VMM_NAME_SERVERS         | '1.1.1.1,1.0.0.1'  | domain name servers' address sent via DHCP server (comma separated) |
+| VMM_SERVER_CERT          |                    | path to the server certificate file                                 |
+| VMM_SERVER_KEY           |                    | path to the server private key file                                 |
+| VMM_NO_TLS               | 'false'            | disable tls if set "true"                                           |
+| VMM_NO_AUTH              | 'false'            | skip API authentication if set "true"                               |
+| VMM_NO_KVM               | 'false'            | disable kvm if set "true"                                           |
+| VMM_VNC_KEYBOARD_LAYOUT  | 'en-us'            | keyboard layout language for VNC                                    |
 
 ## Installer environments
 

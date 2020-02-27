@@ -29,20 +29,17 @@ func ListAgents(w http.ResponseWriter, r *http.Request) {
 	definedSelf := false
 
 	hostname, _ := os.Hostname()
-	envAgents := os.Getenv(minivmm.EnvAgents)
-	if envAgents != "" {
-		for _, a := range strings.Split(envAgents, ",") {
-			name := strings.Split(a, "=")[0]
-			api := strings.Split(a, "=")[1]
-			agents = append(agents, &agent{name, api})
-			if name == hostname {
-				definedSelf = true
-			}
+	for _, a := range minivmm.C.Agents {
+		name := strings.Split(a, "=")[0]
+		api := strings.Split(a, "=")[1]
+		agents = append(agents, &agent{name, api})
+		if name == hostname {
+			definedSelf = true
 		}
 	}
 
 	if !definedSelf {
-		api := os.Getenv(minivmm.EnvOrigin) + "/api/v1/"
+		api := minivmm.C.Origin + "/api/v1/"
 		agents = append(agents, &agent{hostname, api})
 	}
 

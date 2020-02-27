@@ -4,11 +4,12 @@ go 1.12
 
 require (
 	github.com/apparentlymart/go-cidr v1.0.1
+	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/gofrs/flock v0.7.1
 	github.com/krolaw/dhcp4 v0.0.0-20190909130307-a50d88189771
 	github.com/pkg/errors v0.8.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
-	github.com/rakyll/statik v0.1.6
+	github.com/rakyll/statik v0.1.7
 	github.com/rs/cors v1.7.0
 	github.com/rsp9u/go-oidc v2.1.2+incompatible
 	github.com/yaamai/govmm v0.2.0

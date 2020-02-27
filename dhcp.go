@@ -4,7 +4,6 @@ import (
 	"log"
 	"math/rand"
 	"net"
-	"os"
 	"strings"
 	"time"
 
@@ -13,11 +12,7 @@ import (
 )
 
 func parseNameServers() []byte {
-	serversList := os.Getenv(EnvNameServers)
-	if len(serversList) == 0 {
-		return []byte{}
-	}
-	servers := strings.Split(serversList, ",")
+	servers := C.NameServers
 	addresses := []byte{}
 	for _, serverIP := range servers {
 		ip := net.ParseIP(serverIP)

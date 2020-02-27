@@ -12,7 +12,7 @@ import (
 
 // ListBaseImages returns a list of base images from file system.
 func ListBaseImages() []string {
-	d, _ := os.Open(ImageDir)
+	d, _ := os.Open(C.ImageDir)
 	files, _ := d.Readdir(0)
 
 	names := []string{}
@@ -30,7 +30,7 @@ func CreateImage(name, size, base, dstDir string) (string, error) {
 		return "", err
 	}
 
-	b, _ := filepath.Abs(filepath.Join(ImageDir, base))
+	b, _ := filepath.Abs(filepath.Join(C.ImageDir, base))
 	p, _ := filepath.Abs(filepath.Join(dstDir, name+".qcow2"))
 	o := fmt.Sprintf("backing_file=%s,backing_fmt=qcow2", b)
 	o2 := "cluster_size=2M"

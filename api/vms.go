@@ -195,7 +195,7 @@ func resizeVM(vmName string, v *vm) (*minivmm.VMMetaData, error) {
 	}
 
 	if v.Disk != "" {
-		vmDataDir := filepath.Join(minivmm.VMDir, vmName)
+		vmDataDir := filepath.Join(minivmm.C.VMDir, vmName)
 		err := minivmm.ResizeImage(vmName, v.Disk, vmDataDir)
 		if err != nil {
 			return nil, err
