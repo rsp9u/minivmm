@@ -110,9 +110,9 @@ If you'd like to change environment variables, edit `$VMM_DIR/minivmm.environmen
 | VMM_NAME_SERVERS         | '1.1.1.1,1.0.0.1'  | domain name servers' address sent via DHCP server (comma separated) |
 | VMM_SERVER_CERT          |                    | path to the server certificate file                                 |
 | VMM_SERVER_KEY           |                    | path to the server private key file                                 |
-| VMM_NO_TLS               | 'false             | disable tls if set "1" or "true"                                    |
-| VMM_NO_AUTH              | 'false             | skip API authentication if set "1" or "true"                        |
-| VMM_NO_KVM               | 'false             | disable kvm if set "1" or "true"                                    |
+| VMM_NO_TLS               | 'false'            | disable tls if set "true"                                           |
+| VMM_NO_AUTH              | 'false'            | skip API authentication if set "true"                               |
+| VMM_NO_KVM               | 'false'            | disable kvm if set "true"                                           |
 | VMM_VNC_KEYBOARD_LAYOUT  | 'en-us'            | keyboard layout language for VNC                                    |
 
 ## Installer environments
