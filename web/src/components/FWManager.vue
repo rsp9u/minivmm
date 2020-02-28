@@ -16,6 +16,8 @@
           template(v-if="item.type === 'vnc'")
             a.link-text(:href="'vnc://' + getAgentIP(item.hypervisor) + ':' + item.from_port") vnc
         b-table-column(label="action")
+          template(slot="header" slot-scope="{ column }")
+            span.tag.is-danger {{ column.label }}
           b-tooltip(label="delete" position="is-right")
             b-button(type="is-text" icon-left="delete" size="is-small" @click="deleteItem(item)")
     b-modal(:active.sync="dialogVisible" width="32em" :can-cancel="['escape', 'outside']")

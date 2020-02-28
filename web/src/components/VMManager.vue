@@ -9,6 +9,8 @@
         b-table-column(label="lock")
           b-icon(size="is-small" :icon="item['lock'] === 'true' ? 'lock' : 'lock-open-outline'")
         b-table-column(label="action")
+          template(slot="header" slot-scope="{ column }")
+            span.tag.is-danger {{ column.label }}
           VMMenu(:endpoint="getAgentEndpoint(item.hypervisor)" :item="item" @push-toast="propagatePushToast")
     b-modal(:active.sync="dialogVisible" width="32em")
       form
@@ -70,12 +72,7 @@ export default {
   },
   props: ["agents", "vms"],
   data() {
-    const menuItems = [
-      { title: "start" },
-      { title: "stop" },
-      { title: "resize" },
-      { title: "delete" }
-    ];
+    const menuItems = [{ title: "start" }, { title: "stop" }, { title: "resize" }, { title: "delete" }];
 
     const defaultVM = {
       name: "",
@@ -118,11 +115,7 @@ export default {
       }
       const ep = this.getAgentEndpoint(this.editedVM.hypervisor);
       if (ep !== "") {
-        axios
-          .get(ep + "images")
-          .then(
-            response => (this.images = response.data.images.map(x => x.name))
-          );
+        axios.get(ep + "images").then(response => (this.images = response.data.images.map(x => x.name)));
       }
     },
 
