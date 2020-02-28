@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -19,6 +20,7 @@ func parseForwardBody(body io.ReadCloser) *minivmm.ForwardMetaData {
 
 	var f minivmm.ForwardMetaData
 	json.Unmarshal(buf.Bytes(), &f)
+
 	return &f
 }
 
@@ -67,6 +69,17 @@ func ListForwards(w http.ResponseWriter, r *http.Request) {
 func CreateForward(w http.ResponseWriter, r *http.Request) {
 	f := parseForwardBody(r.Body)
 	f.Owner = minivmm.GetUserName(r)
+
+	if f.FromPort == "" {
+		rangeMin, rangeMax := portRangePerUser(minivmm.GetUserName(r))
+		port, err := minivmm.GetRandomForwardPort(f.Proto, rangeMin, rangeMax)
+		if err != nil {
+			writeInternalServerError(err, w)
+			return
+		}
+		f.FromPort = port
+	}
+
 	log.Println(f)
 
 	err := minivmm.StartForward(f.Proto, f.FromPort, f.ToName, f.ToPort)
@@ -117,4 +130,12 @@ func restrictForwardOperationByOwner(w http.ResponseWriter, r *http.Request, pro
 	}
 
 	return nil
+}
+
+func portRangePerUser(userName string) (int, int) {
+	// Auto-numbering port range is from 30000 to 55999(30000+256*100-1).
+	// The size of the range per user is 100, its range caluculated by the user name hash.
+	hash := sha256.Sum256([]byte(userName))
+	base := int(hash[0])
+	return 100*base + 30000, 100*(base+1) - 1 + 30000
 }

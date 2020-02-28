@@ -9,6 +9,8 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -330,7 +332,7 @@ func ReadAllForwardFiles() ([]*ForwardMetaData, error) {
 	var ret []*ForwardMetaData
 	for _, f := range dirEntries {
 		if !f.IsDir() {
-			fw, err := readForwardFileByID(f.Name())
+			fw, err := readForwardFileByFileName(f.Name())
 			if err != nil {
 				log.Println("Ignore ReadForwardFile error:", err)
 				continue
@@ -344,12 +346,38 @@ func ReadAllForwardFiles() ([]*ForwardMetaData, error) {
 
 // ReadForwardFile returns a forwarding setting.
 func ReadForwardFile(proto, fromPort string) (*ForwardMetaData, error) {
-	return readForwardFileByID(generateForwardID(proto, fromPort))
+	return readForwardFileByFileName(generateForwardID(proto, fromPort) + ".json")
 }
 
-func readForwardFileByID(id string) (*ForwardMetaData, error) {
+// GetRandomForwardPort choices a random number in range and it's unused port as forward port.
+func GetRandomForwardPort(proto string, rangeMin, rangeMax int) (string, error) {
+	dirEntries, err := ioutil.ReadDir(C.ForwardDir)
+	if err != nil {
+		return "", err
+	}
+	existsSet := map[string]struct{}{}
+	for _, f := range dirEntries {
+		if !f.IsDir() && strings.HasPrefix(f.Name(), proto) {
+			n := f.Name()
+			n = strings.TrimSuffix(n, ".json")
+			existsSet[n] = struct{}{}
+		}
+	}
+
+	for i := rangeMin; i <= rangeMax; i++ {
+		id := generateForwardID(proto, strconv.Itoa(i))
+		_, exists := existsSet[id]
+		if !exists {
+			return strconv.Itoa(i), nil
+		}
+	}
+
+	return "", fmt.Errorf("failed to get forwarding port. it's exhausted.")
+}
+
+func readForwardFileByFileName(fileName string) (*ForwardMetaData, error) {
 	fw := ForwardMetaData{}
-	b, err := ioutil.ReadFile(filepath.Join(C.ForwardDir, id))
+	b, err := ioutil.ReadFile(filepath.Join(C.ForwardDir, fileName))
 	if err != nil {
 		return nil, err
 	}
