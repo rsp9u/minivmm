@@ -71,7 +71,7 @@ export default {
       return JSON.stringify(prevVMs) !== JSON.stringify(currVMs);
     },
     addForwardFromVMManager(fw) {
-      this.$refs.fwm.createFwFromObject(fw);
+      this.$refs.fwm.createFw(fw);
     },
     // Forward
     async getForwards(apiEndpoint) {

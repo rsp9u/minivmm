@@ -21,66 +21,26 @@
           b-tooltip(label="delete" position="is-right")
             b-button(type="is-text" icon-left="delete" size="is-small" @click="deleteItem(item)")
     b-modal(:active.sync="dialogVisible" width="32em" :can-cancel="['escape', 'outside']")
-      form
-        .modal-card(style="max-width: 32em")
-          header.modal-card-head
-            p.modal-card-title Add Forwarding rule
-          section.modal-card-body
-            .columns.is-multiline
-              .column.is-12
-                b-field(label="hypervisor")
-                  b-select(v-model="editedFw.hypervisor" expanded)
-                    option(v-for="option in agentNames" :key="option" :value="option") {{ option }}
-              .column.is-3
-                b-field(label="protocol")
-                  b-select(v-model="editedFw.proto" expanded)
-                    option(v-for="option in protocols" :key="option" :value="option") {{ option }}
-              .column.is-3
-                b-field(label="from port")
-                  b-input(v-model="editedFw.from_port")
-              .column.is-3
-                b-field(label="to name")
-                  b-select(v-model="editedFw.to_name" expanded)
-                    option(v-for="option in vmNames" :key="option" :value="option") {{ option }}
-              .column.is-3
-                b-field(label="to port")
-                  b-input(v-model="editedFw.to_port")
-              .column.is-6
-                b-field(label="description")
-                  b-input(v-model="editedFw.description")
-              .column.is-6
-                b-field(label="type")
-                  b-select(v-model="editedFw.type" expanded)
-                    option(v-for="option in fwTypes" :key="option" :value="option") {{ option }}
-          footer.modal-card-foot(style="justify-content: flex-end")
-            b-button(@click="clear") Cancel
-            b-button(type="is-info" @click="createFw") Create
+      FWDialog(ref="dialog" :agents="agents" :vms="vms" @create="createFw" @cancel="dialogVisible = false;")
 </template>
 
 <script>
 import util from "@/util";
 import axios from "axios";
+import FWDialog from "@/components/FWDialog";
 axios.defaults.headers.post["Content-Type"] = "application/json";
 
 export default {
   name: "FWManager",
+  components: {FWDialog},
   props: ["agents", "fws", "vms"],
   data() {
     return {
       fwAttrs: ["proto", "translation", "description"],
-      fwTypes: ["http/https", "ssh"],
       dialogVisible: false,
-      editedFw: { proto: "tcp" },
-      protocols: ["tcp", "udp"]
     };
   },
   computed: {
-    agentNames() {
-      return this.agents.map(x => x.name);
-    },
-    vmNames() {
-      return this.vms.map(x => x.name);
-    },
     fwsView() {
       return this.fws.map(origFw => {
         var fw = Object.assign(origFw);
@@ -90,19 +50,16 @@ export default {
     }
   },
   methods: {
-    clear() {
-      this.editedFw = { proto: "tcp" };
+    clearDialog() {
       this.dialogVisible = false;
+      this.$refs.dialog.clear();
     },
 
-    createFw() {
-      this.createFwFromObject(this.editedFw);
-    },
-    createFwFromObject(fw) {
+    createFw(fw) {
       const ep = this.getAgentEndpoint(fw.hypervisor);
       if (ep === "") {
         alert("Unknown hypervisor.");
-        this.clear();
+        this.clearDialog();
         return;
       }
       const url = ep + "forwards";
@@ -114,7 +71,7 @@ export default {
           this.$emit("push-toast", msg);
         })
         .finally(() => {
-          this.clear();
+          this.clearDialog();
           this.$emit("update-forwards");
         });
     },
