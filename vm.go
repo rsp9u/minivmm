@@ -10,11 +10,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"text/template"
 	"time"
-	"unicode"
 
 	"github.com/pkg/errors"
 	"github.com/yaamai/govmm/qemu"
@@ -101,31 +99,6 @@ func isExistsVMIF(ifName string) bool {
 
 	// FIXME: extend Execs and check return-code instead of error message check
 	return !strings.Contains(err.Error(), "does not exist.")
-}
-
-func convertSIPrefixedMemorySize(prefixedValue string) (string, error) {
-	if len(prefixedValue) <= 1 {
-		return "", errors.New("Memory size too low")
-	}
-
-	prefixedValueRune := []rune(prefixedValue)
-	prefix := prefixedValueRune[len(prefixedValue)-1:][0]
-	value, err := strconv.Atoi(string(prefixedValueRune[0 : len(prefixedValue)-1]))
-	if err != nil {
-		return "", err
-	}
-	log.Println(value, prefix)
-
-	if prefix == 'M' {
-		return strconv.Itoa(value), nil
-	} else if prefix == 'G' {
-		return strconv.Itoa(value * 1024), nil
-	} else if unicode.IsDigit(prefix) {
-		// prefix and value is digit, checked above
-		value, _ := strconv.Atoi(prefixedValue)
-		return strconv.Itoa(value / 1024), nil
-	}
-	return "", errors.New("Not supported prefix")
 }
 
 func generateQemuParams(qmpSocketPath, vncSocketPath, driveFilePath, cloudInitISOPath, vmMACAddr, vmIFSetupScriptPath, vmIFName, cpu, memory string) []string {
@@ -411,7 +384,7 @@ func prepareStartVM(name string, metaData *VMMetaData) ([]string, error) {
 	cloudInitISOPath := metaData.CloudInitIso
 	vmMACAddr := metaData.MacAddress
 	cpu := metaData.CPU
-	memory, err := convertSIPrefixedMemorySize(metaData.Memory)
+	memory, err := convertSIPrefixedValue(metaData.Memory, "mebi")
 	if err != nil {
 		return nil, err
 	}
