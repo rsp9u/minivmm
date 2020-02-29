@@ -109,8 +109,12 @@ export default {
       }
     },
     // Toast
-    toast({ message, color }) {
-      this.$buefy.toast.open({ message: message, type: color })
+    toast({ message, color, duration }) {
+      if (duration) {
+        this.$buefy.toast.open({ message: message, type: color, duration: duration })
+      } else {
+        this.$buefy.toast.open({ message: message, type: color })
+      }
     }
   }
 };

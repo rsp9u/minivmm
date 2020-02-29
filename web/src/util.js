@@ -3,13 +3,13 @@ function callAxios(axiosFunc, url, body, errMsg) {
     return axiosFunc(url).catch(error => {
       const body = error.response.data;
       const msg = `${errMsg}: ${body.error}`;
-      throw { message: msg, color: "is-danger" };
+      throw { message: msg, color: "is-danger", duration: 5000 };
     });
   } else {
     return axiosFunc(url, body).catch(error => {
       const body = error.response.data;
       const msg = `${errMsg}: ${body.error}`;
-      throw { message: msg, color: "is-danger" };
+      throw { message: msg, color: "is-danger", duration: 5000 };
     });
   }
 }
