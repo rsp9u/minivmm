@@ -16,6 +16,9 @@ func RegisterHandlers(mux *http.ServeMux) {
 	registerWithAuth(mux, prefix+"/images", HandleImages)
 
 	mux.HandleFunc(prefix+"/login", HandleOIDCCallback)
+
+	InitMetricsHandler()
+	mux.Handle(prefix+"/metrics", GetMetricsHandler())
 }
 
 func registerWithAuth(mux *http.ServeMux, url string, f func(http.ResponseWriter, *http.Request)) {
