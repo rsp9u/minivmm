@@ -20,11 +20,11 @@ func execs(cmds [][]string, ignoreErr bool) error {
 	for _, cmd := range cmds {
 		c := exec.Command(cmd[0], cmd[1:]...)
 		stderr, _ := c.StderrPipe()
-		if err := c.Start(); err != nil && ignoreErr != false {
+		if err := c.Start(); err != nil && !ignoreErr {
 			return fmt.Errorf("%v: failed to start command %v", err, cmd)
 		}
 		msg, _ := ioutil.ReadAll(stderr)
-		if err := c.Wait(); err != nil && ignoreErr != false {
+		if err := c.Wait(); err != nil && !ignoreErr {
 			return fmt.Errorf("%v, %v: %s", err, cmd, msg)
 		}
 	}
