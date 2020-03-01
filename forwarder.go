@@ -367,12 +367,37 @@ func GetRandomForwardPort(proto string, rangeMin, rangeMax int) (string, error) 
 	for i := rangeMin; i <= rangeMax; i++ {
 		id := generateForwardID(proto, strconv.Itoa(i))
 		_, exists := existsSet[id]
-		if !exists {
+		if !exists && checkPortIsBindable(proto, strconv.Itoa(i)) {
 			return strconv.Itoa(i), nil
 		}
 	}
 
 	return "", fmt.Errorf("failed to get forwarding port. it's exhausted.")
+}
+
+func checkPortIsBindable(proto, port string) bool {
+	switch proto {
+	case "tcp":
+		conn, err := net.Listen(proto, ":"+port)
+		if err != nil {
+			log.Printf("failed a port bind check; %v", err)
+			return false
+		} else {
+			conn.Close()
+			return true
+		}
+	case "udp":
+		addr, _ := net.ResolveUDPAddr("udp", ":"+port)
+		conn, err := net.ListenUDP(proto, addr)
+		if err != nil {
+			log.Printf("failed a port bind check; %v", err)
+			return false
+		} else {
+			conn.Close()
+			return true
+		}
+	}
+	return false
 }
 
 func readForwardFileByFileName(fileName string) (*ForwardMetaData, error) {
