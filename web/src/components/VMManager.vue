@@ -29,7 +29,7 @@
                     option(v-for="option in images" :key="option" :value="option") {{ option }}
               .column.is-12
                 b-field(label="name")
-                  b-input(v-model="editedVM.name")
+                  b-input(v-model="editedVM.name" maxlength="10")
               .column.is-4
                 b-field(label="vcpu")
                   b-input(v-model="editedVM.cpu")
@@ -86,11 +86,7 @@ export default {
       defaultVM: defaultVM,
       images: [],
       menuItems: menuItems,
-      cloudinitTemplates: cloudinit.templates,
-      rules: {
-        max: v => v.length <= 10 || "Max 10 characters"
-      },
-      invalidVM: false
+      cloudinitTemplates: cloudinit.templates
     };
   },
   computed: {
@@ -103,9 +99,6 @@ export default {
       this.editedVM = Object.assign({}, this.defaultVM);
       this.images = [];
       this.dialogVisible = false;
-    },
-    nameError(errorStatus) {
-      this.invalidVM = errorStatus;
     },
 
     updateImages() {
