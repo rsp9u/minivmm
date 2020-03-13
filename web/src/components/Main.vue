@@ -1,6 +1,6 @@
 <template lang="pug">
   #minivmm_main
-    VMManager(ref="vmm" :agents="agents" :vms="vms" @push-toast="toast" @update-vms="getAllVMs" @add-forward="addForwardFromVMManager")
+    VMManager(ref="vmm" :agents="agents" :vms="vms" @push-toast="toast" @update-vms="getAllVMs" @add-forward="addForwardFromVMManager" @delete-vm="deleteForwardByVMDeletion")
     FWManager(ref="fwm" :agents="agents" :fws="fws" :vms="vms" @push-toast="toast" @update-forwards="getAllForwards")
 </template>
 
@@ -22,7 +22,7 @@ export default {
       agents: [],
       vms: [],
       fws: [],
-      intervalIds: [],
+      intervalIds: []
     };
   },
   created() {
@@ -72,6 +72,9 @@ export default {
     },
     addForwardFromVMManager(fw) {
       this.$refs.fwm.createFw(fw);
+    },
+    deleteForwardByVMDeletion(deletedVM) {
+      this.$refs.fwm.deleteItemsRelatedVM(deletedVM.hypervisor, deletedVM.name);
     },
     // Forward
     async getForwards(apiEndpoint) {

@@ -180,6 +180,7 @@ export default {
           .then(() => {
             const successMsg = "Suceeded VM deletion";
             this.$emit("push-toast", { message: successMsg, color: "is-success" });
+            this.$emit("delete-vm", this.item);
           })
           .catch(msg => {
             this.$emit("push-toast", msg);

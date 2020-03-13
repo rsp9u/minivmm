@@ -11,7 +11,13 @@
         b-table-column(label="action")
           template(slot="header" slot-scope="{ column }")
             span.tag.is-danger {{ column.label }}
-          VMMenu(:endpoint="getAgentEndpoint(item.hypervisor)" :item="item" @push-toast="propagatePushToast")
+          VMMenu(
+            :endpoint="getAgentEndpoint(item.hypervisor)"
+            :item="item"
+            @push-toast="propagateEvent($event, 'push-toast')"
+            @update-vms="propagateEvent($event, 'update-vms')"
+            @delete-vm="propagateEvent($event, 'delete-vm')"
+          )
     b-modal(:active.sync="dialogVisible" width="32em")
       form
         .modal-card(style="max-width: 32em")
@@ -165,8 +171,8 @@ export default {
       return target[0].api;
     },
 
-    propagatePushToast(event) {
-      this.$emit("push-toast", event);
+    propagateEvent(event, eventName) {
+      this.$emit(eventName, event);
     }
   }
 };

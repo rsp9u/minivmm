@@ -76,21 +76,30 @@ export default {
         });
     },
 
-    deleteItem(item) {
-      if (confirm("Are you sure you want to delete this item?")) {
-        console.log(item);
-        const ep = this.getAgentEndpoint(item.hypervisor);
-        const url = ep + "forwards";
-        const body = { data: item };
-        const errMsg = "Failed to delete forward";
-        util
-          .callAxios(axios.delete, url, body, errMsg)
-          .catch(msg => {
-            this.$emit("push-toast", msg);
-          })
-          .finally(() => {
-            this.$emit("update-forwards");
-          });
+    deleteItem(item, withConfirm = true) {
+      if (withConfirm && !confirm("Are you sure you want to delete this item?")) {
+        return;
+      }
+
+      console.log(item);
+      const ep = this.getAgentEndpoint(item.hypervisor);
+      const url = ep + "forwards";
+      const body = { data: item };
+      const errMsg = "Failed to delete forward";
+      util
+        .callAxios(axios.delete, url, body, errMsg)
+        .catch(msg => {
+          this.$emit("push-toast", msg);
+        })
+        .finally(() => {
+          this.$emit("update-forwards");
+        });
+    },
+
+    deleteItemsRelatedVM(hypervisor, vmName) {
+      const targets = this.fws.filter(fw => fw.hypervisor === hypervisor && fw.to_name === vmName);
+      for (let target of targets) {
+        this.deleteItem(target, false);
       }
     },
 
