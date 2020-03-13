@@ -3,7 +3,7 @@
     div(style="display: flex")
       p.is-size-4 Forwards
       b-button(type="is-info" icon-left="plus-thick" style="margin-left: auto" @click="dialogVisible = true") New
-    b-table(:data="fwsView")
+    b-table(:data="fwsView" :hoverable="true")
       template(v-slot:default="{ row: item }")
         b-table-column(v-for="attr in fwAttrs" :key="attr" :label="attr" :field="attr") {{ item[attr] }}
         b-table-column(label="link")
