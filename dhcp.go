@@ -36,12 +36,12 @@ func ServeDHCP() {
 	handler := &dhcpHandler{
 		ip:            nwInfo.gwIP,
 		start:         nwInfo.startIP,
-		leaseRange:    100,
+		leaseRange:    (1 << uint(32-nwInfo.cidrLen)) - 4,
 		leaseDuration: 2 * time.Hour,
 		leases:        make(map[int]lease, 32),
 		macVendor:     "52:54:00",
 		options: dhcp.Options{
-			dhcp.OptionSubnetMask:       []byte{255, 255, 255, 0},
+			dhcp.OptionSubnetMask:       []byte(nwInfo.cidrIPNet.Mask),
 			dhcp.OptionRouter:           []byte(nwInfo.gwIP),
 			dhcp.OptionDomainNameServer: dnsIPs,
 		},

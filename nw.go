@@ -1,6 +1,7 @@
 package minivmm
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/apparentlymart/go-cidr/cidr"
@@ -8,6 +9,7 @@ import (
 
 type vmNetworkInfo struct {
 	cidrIPNet *net.IPNet
+	cidrLen   int
 	gwIP      net.IP
 	startIP   net.IP
 }
@@ -23,6 +25,10 @@ func newNetworkInfo() (*vmNetworkInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	cidrLen, _ := cidrIPNet.Mask.Size()
+	if cidrLen >= 30 {
+		return nil, fmt.Errorf("Subnet size is too small (least '/29')")
+	}
 
 	cnt := int(cidr.AddressCount(cidrIPNet) - 1)
 	gwIP, err := cidr.Host(cidrIPNet, cnt-1)
@@ -36,6 +42,7 @@ func newNetworkInfo() (*vmNetworkInfo, error) {
 
 	return &vmNetworkInfo{
 		cidrIPNet,
+		cidrLen,
 		gwIP,
 		startIP,
 	}, nil
@@ -80,8 +87,7 @@ func StartNetwork() error {
 		{"sudo", "ip", "netns", "exec", nsName, "ip", "link", "set", "promisc", "on", "dev", vethNames[1]},
 		{"sudo", "ip", "netns", "exec", nsName, "ip", "link", "set", "up", "dev", brName},
 
-		{"sudo", "ip", "addr", "add", nwInfo.gwIP.String(), "dev", vethNames[0]},
-		{"sudo", "ip", "route", "add", nwInfo.cidrIPNet.String(), "dev", vethNames[0]},
+		{"sudo", "ip", "addr", "add", fmt.Sprintf("%s/%d", nwInfo.gwIP.String(), nwInfo.cidrLen), "dev", vethNames[0]},
 	})
 	return nil
 }
