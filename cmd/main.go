@@ -88,6 +88,8 @@ func server() {
 }
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	err := minivmm.ParseConfig()
 	if err != nil {
 		panic(err)
