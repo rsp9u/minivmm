@@ -29,7 +29,7 @@ var (
 	VMIPAddressUpdateChan = make(chan *VMMetaData)
 )
 
-var vmIFSetupScriptTemplate = `#!/bin/bash
+var vmIFSetupScriptTemplate = `#!/bin/sh
 if_name=$1
 sudo ip link set dev $if_name netns minivmm
 sudo ip netns exec minivmm ip link set dev $if_name master br-minivmm
@@ -37,7 +37,7 @@ sudo ip netns exec minivmm ip link set dev $if_name promisc on
 sudo ip netns exec minivmm ip link set dev $if_name up
 `
 
-var vmIFCleanupScriptTemplate = `#!/bin/bash
+var vmIFCleanupScriptTemplate = `#!/bin/sh
 if_name=$1
 sudo ip netns exec minivmm ip link set dev $if_name down
 sudo ip netns exec minivmm ip link set dev $if_name promisc off
