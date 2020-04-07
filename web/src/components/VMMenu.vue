@@ -4,6 +4,7 @@
       template(v-slot:trigger)
         b-button(type="is-text" icon-left="dots-horizontal" size="is-small")
       b-dropdown-item(v-for="(menu, menuIndex) in menuItems" :key="menuIndex" aria-role="listitem" :disabled="menu.disabled" @click="clickMenu(menu)") {{ menu.title }}
+
     b-modal(:active.sync="resizeDialog" width="30em" :can-cancel="['escape', 'outside']")
       .modal-card(style="max-width: 30em")
         header.modal-card-head
@@ -28,6 +29,30 @@
         footer.modal-card-foot(style="justify-content: flex-end")
           b-button(@click="resizeCancel") Cancel
           b-button(type="is-info" @click="resizeVM") Resize
+
+    b-modal(:active.sync="addVolumeDialog" width="30em" :can-cancel="['escape', 'outside']")
+      .modal-card(style="max-width: 30em")
+        header.modal-card-head
+          p.modal-card-title Add Volume
+        section.modal-card-body
+          .columns.is-multiline
+            .column.is-12
+              b-field(label="size")
+                b-input(v-model="addVolumeSize")
+        footer.modal-card-foot(style="justify-content: flex-end")
+          b-button(@click="addVolumeCancel") Cancel
+          b-button(type="is-info" @click="addVolume") Create
+
+    b-modal(:active.sync="rmVolumeDialog" width="30em" :can-cancel="['escape', 'outside']")
+      .modal-card(style="max-width: 30em")
+        header.modal-card-head
+          p.modal-card-title Remove Volume
+        section.modal-card-body
+          b-table(:data="item.extra_volumes" :narrowed="true" :hoverable="true" @click="rmVolume")
+            template(v-slot:default="{ row: volume }")
+              b-table-column(v-for="attr in ['name', 'size']" :key="attr" :label="attr" :field="attr") {{ volume[attr] }}
+        footer.modal-card-foot(style="justify-content: flex-end")
+          b-button(@click="rmVolumeCancel") Cancel
 </template>
 
 <script>
@@ -39,11 +64,13 @@ export default {
   name: "VMMenu",
   props: ["endpoint", "item"],
   data() {
-
     return {
       editedResize: {},
       resizeDialog: false,
-      resizeType: ["cpu/memory", "disk"]
+      resizeType: ["cpu/memory", "disk"],
+      addVolumeDialog: false,
+      addVolumeSize: "",
+      rmVolumeDialog: false
     };
   },
   computed: {
@@ -64,6 +91,14 @@ export default {
         {
           title: "resize",
           disabled: this.item.status !== "stopped"
+        },
+        {
+          title: "add volume",
+          disabled: this.item.status === "running"
+        },
+        {
+          title: "rm volume",
+          disabled: this.item.status === "running" || this.item.lock === "true"
         },
         {
           title: this.item.lock === "true" ? "unlock" : "lock",
@@ -92,6 +127,12 @@ export default {
         case "resize":
           this.resizeDialog = true;
           break;
+        case "add volume":
+          this.addVolumeDialog = true;
+          break;
+        case "rm volume":
+          this.rmVolumeDialog = true;
+          break;
         case "lock":
           this.setLockVM("true");
           break;
@@ -114,8 +155,8 @@ export default {
       this.updateVMStatus(this.item.name, "stop");
     },
     openVNC() {
-      let route = this.$router.resolve({name: 'vnc', query: {name: this.item.name}});
-      window.open(route.href, '_blank');
+      let route = this.$router.resolve({ name: "vnc", query: { name: this.item.name } });
+      window.open(route.href, "_blank");
     },
     updateVMStatus(name, status) {
       const url = this.endpoint + `vms/${name}`;
@@ -146,9 +187,46 @@ export default {
           this.$emit("update-vms");
         });
     },
+    addVolume() {
+      console.log(this.item);
+      const url = this.endpoint + `vms/${this.item.name}/volumes`;
+      const body = { size: this.addVolumeSize };
+      const errMsg = "Failed to add a new volume";
+      util
+        .callAxios(axios.post, url, body, errMsg)
+        .catch(msg => {
+          this.$emit("push-toast", msg);
+        })
+        .finally(() => {
+          this.addVolumeDialog = false;
+          this.addVolumeSize = "";
+          this.$emit("update-vms");
+        });
+    },
+    rmVolume(volume) {
+      console.log(volume);
+      const url = this.endpoint + `vms/${this.item.name}/volumes/${volume.name}`;
+      const errMsg = "Failed to remove a volume";
+      util
+        .callAxios(axios.delete, url, {}, errMsg)
+        .catch(msg => {
+          this.$emit("push-toast", msg);
+        })
+        .finally(() => {
+          this.rmVolumeDialog = false;
+          this.$emit("update-vms");
+        });
+    },
     resizeCancel() {
       this.resizeDialog = false;
       this.editedResize = {};
+    },
+    addVolumeCancel() {
+      this.addVolumeDialog = false;
+      this.addVolumeSize = "";
+    },
+    rmVolumeCancel() {
+      this.rmVolumeDialog = false;
     },
     setLockVM(lock) {
       console.log(this.item);
@@ -157,7 +235,7 @@ export default {
       this.$emit("push-toast", { message: infoMsg, color: "is-info" });
 
       const url = this.endpoint + `vms/${this.item.name}`;
-      const body = {lock: lock};
+      const body = { lock: lock };
       const errMsg = `Failed to ${lockOrUnlock} VM`;
       util
         .callAxios(axios.patch, url, body, errMsg)
