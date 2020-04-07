@@ -16,26 +16,42 @@ import (
 )
 
 var (
-	updateVMAPI = regexp.MustCompile(`^/api/v1/vms/[^/]+$`)
+	updateVMAPI    = regexp.MustCompile(`^/api/v1/vms/[^/]+$`)
+	extraVolumeAPI = regexp.MustCompile(`^/api/v1/vms/[^/]+/volumes.*$`)
 )
 
 type vm struct {
-	Name       string `json:"name"`
-	Status     string `json:"status"`
-	Owner      string `json:"owner"`
-	Hypervisor string `json:"hypervisor"`
-	Image      string `json:"image"`
-	IP         string `json:"ip"`
-	CPU        string `json:"cpu"`
-	Memory     string `json:"memory"`
-	Disk       string `json:"disk"`
-	Tag        string `json:"tag"`
-	Lock       string `json:"lock"`
-	UserData   string `json:"user_data"`
+	Name         string        `json:"name"`
+	Status       string        `json:"status"`
+	Owner        string        `json:"owner"`
+	Hypervisor   string        `json:"hypervisor"`
+	Image        string        `json:"image"`
+	IP           string        `json:"ip"`
+	CPU          string        `json:"cpu"`
+	Memory       string        `json:"memory"`
+	Disk         string        `json:"disk"`
+	Tag          string        `json:"tag"`
+	Lock         string        `json:"lock"`
+	UserData     string        `json:"user_data"`
+	ExtraVolumes []extraVolume `json:"extra_volumes"`
+}
+
+type extraVolume struct {
+	Name string `json:"name"`
+	Size string `json:"size"`
 }
 
 // HandleVMs handles virtual machine resource request.
 func HandleVMs(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost && extraVolumeAPI.MatchString(r.URL.String()) {
+		CreateVolume(w, r)
+		return
+	}
+	if r.Method == http.MethodDelete && extraVolumeAPI.MatchString(r.URL.String()) {
+		DeleteVolume(w, r)
+		return
+	}
+
 	if r.Method == http.MethodGet {
 		ListVMs(w, r)
 		return
@@ -70,18 +86,25 @@ func ListVMs(w http.ResponseWriter, r *http.Request) {
 		if metaData.Owner != minivmm.GetUserName(r) {
 			continue
 		}
+		ev := []extraVolume{}
+		if metaData.ExtraVolumes != nil {
+			for _, vol := range metaData.ExtraVolumes {
+				ev = append(ev, extraVolume{vol.Name, vol.Size})
+			}
+		}
 		vm := vm{
-			Name:       metaData.Name,
-			Status:     metaData.Status,
-			Owner:      metaData.Owner,
-			Hypervisor: hostname,
-			Image:      metaData.Image,
-			IP:         metaData.IPAddress,
-			CPU:        metaData.CPU,
-			Memory:     metaData.Memory,
-			Disk:       metaData.Disk,
-			Lock:       strconv.FormatBool(metaData.Lock),
-			Tag:        metaData.Tag,
+			Name:         metaData.Name,
+			Status:       metaData.Status,
+			Owner:        metaData.Owner,
+			Hypervisor:   hostname,
+			Image:        metaData.Image,
+			IP:           metaData.IPAddress,
+			CPU:          metaData.CPU,
+			Memory:       metaData.Memory,
+			Disk:         metaData.Disk,
+			Lock:         strconv.FormatBool(metaData.Lock),
+			Tag:          metaData.Tag,
+			ExtraVolumes: ev,
 		}
 		vms = append(vms, &vm)
 	}
@@ -232,4 +255,56 @@ func restrictVMOperationByOwner(w http.ResponseWriter, r *http.Request, vmName s
 	}
 
 	return nil
+}
+
+// CreateVolume adds a new extra volume to the VM.
+func CreateVolume(w http.ResponseWriter, r *http.Request) {
+	paths := strings.Split(r.URL.String(), "/")
+	vmName := paths[len(paths)-2]
+
+	err := restrictVMOperationByOwner(w, r, vmName)
+	if err != nil {
+		return
+	}
+
+	defer r.Body.Close()
+
+	buf := new(bytes.Buffer)
+	io.Copy(buf, r.Body)
+
+	var ev extraVolume
+	json.Unmarshal(buf.Bytes(), &ev)
+	fmt.Printf("%v\n", ev)
+
+	metaData, err := minivmm.AddVolume(vmName, ev.Size)
+
+	if err != nil {
+		writeInternalServerError(err, w)
+		return
+	}
+
+	b, _ := json.Marshal(metaData)
+	w.Write(b)
+}
+
+// DeleteVolume removes an extra volume from the VM.
+func DeleteVolume(w http.ResponseWriter, r *http.Request) {
+	paths := strings.Split(r.URL.String(), "/")
+	volName := paths[len(paths)-1]
+	vmName := paths[len(paths)-3]
+
+	err := restrictVMOperationByOwner(w, r, vmName)
+	if err != nil {
+		return
+	}
+
+	metaData, err := minivmm.RemoveVolume(vmName, volName)
+
+	if err != nil {
+		writeInternalServerError(err, w)
+		return
+	}
+
+	b, _ := json.Marshal(metaData)
+	w.Write(b)
 }

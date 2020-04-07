@@ -47,22 +47,30 @@ sudo ip netns exec minivmm ip link set dev $if_name netns 1
 
 // VMMetaData is VM's metadata.
 type VMMetaData struct {
-	Name         string `json:"name"`
-	Status       string `json:"status"`
-	Owner        string `json:"owner"`
-	Image        string `json:"image"`
-	Volume       string `json:"volume"`
-	MacAddress   string `json:"mac_address"`
-	IPAddress    string `json:"ip_address"`
-	CPU          string `json:"cpu"`
-	Memory       string `json:"memory"`
-	Disk         string `json:"disk"`
-	Tag          string `json:"tag"`
-	Lock         bool   `json:"lock"`
-	VNCPassword  string `json:"vnc_password"`
-	VNCPort      string `json:"vnc_port"`
-	UserData     string `json:"user_data"`
-	CloudInitIso string `json:"cloud_init_iso"`
+	Name         string        `json:"name"`
+	Status       string        `json:"status"`
+	Owner        string        `json:"owner"`
+	Image        string        `json:"image"`
+	Volume       string        `json:"volume"`
+	MacAddress   string        `json:"mac_address"`
+	IPAddress    string        `json:"ip_address"`
+	CPU          string        `json:"cpu"`
+	Memory       string        `json:"memory"`
+	Disk         string        `json:"disk"`
+	Tag          string        `json:"tag"`
+	Lock         bool          `json:"lock"`
+	VNCPassword  string        `json:"vnc_password"`
+	VNCPort      string        `json:"vnc_port"`
+	UserData     string        `json:"user_data"`
+	CloudInitIso string        `json:"cloud_init_iso"`
+	ExtraVolumes []ExtraVolume `json:"extra_volumes"`
+}
+
+// ExtraVolume is extra volume's metadata
+type ExtraVolume struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
+	Size string `json:"size"`
 }
 
 func exists(filename string) bool {
@@ -101,7 +109,7 @@ func isExistsVMIF(ifName string) bool {
 	return !strings.Contains(err.Error(), "does not exist.")
 }
 
-func generateQemuParams(qmpSocketPath, vncSocketPath, driveFilePath, cloudInitISOPath, vmMACAddr, vmIFSetupScriptPath, vmIFName, cpu, memory string) []string {
+func generateQemuParams(qmpSocketPath, vncSocketPath, driveFilePath, cloudInitISOPath, vmMACAddr, vmIFName, cpu, memory string, extraVolumes []string) []string {
 	params := make([]string, 0, 32)
 
 	if !C.NoKvm {
@@ -112,8 +120,15 @@ func generateQemuParams(qmpSocketPath, vncSocketPath, driveFilePath, cloudInitIS
 	envVNCKeyboardLayout := C.VNCKeyboardLayout
 
 	params = append(params, "-drive", fmt.Sprintf("file=%s,if=virtio,cache=none,aio=threads,format=qcow2", driveFilePath))
+	if extraVolumes != nil {
+		for _, vol := range extraVolumes {
+			params = append(params, "-drive", fmt.Sprintf("file=%s,if=virtio,cache=none,aio=threads,format=qcow2", vol))
+		}
+	}
+
 	params = append(params, "-cdrom", cloudInitISOPath)
-	params = append(params, "-net", fmt.Sprintf("nic,model=virtio,macaddr=%s", vmMACAddr), "-net", fmt.Sprintf("tap,ifname=%s,script=/tmp/ifup,downscript=/tmp/ifdown", vmIFName))
+	params = append(params, "-net", fmt.Sprintf("nic,model=virtio,macaddr=%s", vmMACAddr))
+	params = append(params, "-net", fmt.Sprintf("tap,ifname=%s,script=/tmp/ifup,downscript=/tmp/ifdown", vmIFName))
 	params = append(params, "-daemonize")
 	params = append(params, "-qmp", fmt.Sprintf("unix:%s,server,nowait", qmpSocketPath))
 	params = append(params, "-m", memory, "-smp", fmt.Sprintf("cpus=%s", cpu))
@@ -375,11 +390,8 @@ func StopVM(name string) error {
 }
 
 func prepareStartVM(name string, metaData *VMMetaData) ([]string, error) {
-	// vmIFSetupScriptPath := filepath.Join(VMDir, name, "ifup")
 	qmpSocketPath := getQMPSocketPath(name)
 	vncSocketPath := getVNCSocketPath(name)
-	vmIFSetupScriptPath := filepath.Join("/tmp", "ifup")
-	vmIFCleanupScriptPath := filepath.Join("/tmp", "ifdown")
 	driveFilePath := metaData.Volume
 	cloudInitISOPath := metaData.CloudInitIso
 	vmMACAddr := metaData.MacAddress
@@ -388,16 +400,22 @@ func prepareStartVM(name string, metaData *VMMetaData) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	extraVolumes := []string{}
+	if metaData.ExtraVolumes != nil {
+		for _, vol := range metaData.ExtraVolumes {
+			extraVolumes = append(extraVolumes, vol.Path)
+		}
+	}
 	vmIFName := fmt.Sprintf("tap-%s", name)
 	prepareVMIF(vmIFName)
-	qemuParams := generateQemuParams(qmpSocketPath, vncSocketPath, driveFilePath, cloudInitISOPath, vmMACAddr, vmIFSetupScriptPath, vmIFName, cpu, memory)
+	qemuParams := generateQemuParams(qmpSocketPath, vncSocketPath, driveFilePath, cloudInitISOPath, vmMACAddr, vmIFName, cpu, memory, extraVolumes)
 
 	log.Println("Prepare if script ...")
-	err = generateVMIFSetupScript(vmIFSetupScriptPath)
+	err = generateVMIFSetupScript("/tmp/ifup")
 	if err != nil {
 		return nil, errors.Wrap(err, "StartVM: VM interface setup script generate failed")
 	}
-	err = generateVMIFCleanupScript(vmIFCleanupScriptPath)
+	err = generateVMIFCleanupScript("/tmp/ifdown")
 	if err != nil {
 		return nil, errors.Wrap(err, "StartVM: VM interface setup script generate failed")
 	}
@@ -482,6 +500,71 @@ func setVMLock(name string, lock bool) (*VMMetaData, error) {
 	}
 
 	return metaData, nil
+}
+
+// AddVolume adds a new extra volume to the VM
+func AddVolume(name, size string) (*VMMetaData, error) {
+	metaData, err := GetVM(name)
+	if err != nil {
+		return nil, errors.Wrap(err, "AddVolume: Failed to get VM metadata")
+	}
+
+loop:
+	for i := 1; i <= 256; i++ {
+		imageName := fmt.Sprintf("extra-volume%d", i)
+		for _, vol := range metaData.ExtraVolumes {
+			if imageName == vol.Name {
+				continue loop
+			}
+		}
+
+		vmDataDir := filepath.Join(C.VMDir, name)
+		path, err := CreateImage(imageName, size, "", vmDataDir)
+		if err != nil {
+			return nil, errors.Wrap(err, "AddVolume: Failed to create image")
+		}
+
+		ev := ExtraVolume{Name: imageName, Path: path, Size: size}
+		metaData.ExtraVolumes = append(metaData.ExtraVolumes, ev)
+
+		err = saveVMMetaData(name, metaData)
+		if err != nil {
+			os.Remove(path)
+			return nil, err
+		}
+
+		return metaData, nil
+	}
+
+	return nil, errors.New("The maximum number of extra volumes is 256")
+}
+
+// RemoveVolume removes a extra volume from the VM
+func RemoveVolume(name, volName string) (*VMMetaData, error) {
+	metaData, err := GetVM(name)
+	if err != nil {
+		return nil, errors.Wrap(err, "RemoveVolume: Failed to get VM metadata")
+	}
+	if metaData.Lock {
+		return nil, errors.New("VM is locked")
+	}
+
+	for i, vol := range metaData.ExtraVolumes {
+		if volName == vol.Name {
+			os.Remove(vol.Path)
+
+			metaData.ExtraVolumes = append(metaData.ExtraVolumes[:i], metaData.ExtraVolumes[i+1:]...)
+
+			err = saveVMMetaData(name, metaData)
+			if err != nil {
+				return nil, err
+			}
+
+			return metaData, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Cannot remove '%s'. No such a image file", volName)
 }
 
 func getVMStatus(name string) string {

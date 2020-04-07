@@ -30,15 +30,19 @@ func CreateImage(name, size, base, dstDir string) (string, error) {
 		return "", err
 	}
 
-	b, _ := filepath.Abs(filepath.Join(C.ImageDir, base))
+	params := []string{"qemu-img", "create", "-f", "qcow2", "-o", "cluster_size=2M"}
+	if base != "" {
+		b, _ := filepath.Abs(filepath.Join(C.ImageDir, base))
+		o := fmt.Sprintf("backing_file=%s,backing_fmt=qcow2", b)
+		params = append(params, "-o")
+		params = append(params, o)
+	}
 	p, _ := filepath.Abs(filepath.Join(dstDir, name+".qcow2"))
-	o := fmt.Sprintf("backing_file=%s,backing_fmt=qcow2", b)
-	o2 := "cluster_size=2M"
-	f := "qcow2"
-	params := [][]string{{"qemu-img", "create", "-f", f, "-o", o, "-o", o2, p, size}}
+	params = append(params, p)
+	params = append(params, size)
 
 	log.Println("Creating image: ", params)
-	err = Execs(params)
+	err = Execs([][]string{params})
 	if err != nil {
 		return "", err
 	}
