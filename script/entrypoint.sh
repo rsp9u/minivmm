@@ -6,4 +6,4 @@ cleanup() {
 trap cleanup EXIT
 
 minivmm -init-nw
-minivmm
+minivmm "$@"

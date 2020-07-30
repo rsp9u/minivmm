@@ -6,4 +6,4 @@ RUN \
  chmod +x /usr/bin/minivmm
 COPY script/entrypoint.sh /entrypoint.sh
 RUN chmod 755 /entrypoint.sh
-ENTRYPOINT /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
