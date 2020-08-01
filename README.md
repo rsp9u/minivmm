@@ -84,6 +84,8 @@ This is a minimal and lightweight virtual machine manager.
 ```
 
 ### Standalone with Docker
+> if target device with mixed architecture (ARM big.LITTLE),
+> maybe need to add `--cpuset-cpus 0-1` to arguments.
 ```
 $ sudo docker run \
   --name minivmm --rm -itd --privileged --net host \
