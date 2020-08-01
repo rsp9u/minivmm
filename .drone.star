@@ -116,14 +116,15 @@ def build(ctx, os, arch):
     {
       "name": "build docker %s-%s" % (os, arch),
       "image": "plugins/docker",
+      "environment": {
+        "DOCKER_BUILDKIT": "1" # to enable buildkit for skip unnecessary stage
+      },
       "settings": {
         "username": {"from_secret": "docker_username"},
         "password": {"from_secret": "docker_password"},
         "repo": ctx.repo.slug,
         "tags": "%s-%s" % (TAG_PATTERN, arch),
-        "build_args": [
-          "ARCH=" + arch
-        ]
+        "target": arch
       }
     },
     {
