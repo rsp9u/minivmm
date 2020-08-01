@@ -85,7 +85,7 @@ This is a minimal and lightweight virtual machine manager.
 
 ### Standalone with Docker
 ```
-$ sudo podman run \
+$ sudo docker run \
   --name minivmm --rm -itd --privileged --net host \
   -e VMM_ORIGIN=http://localhost:14151 \
   -e VMM_AGENTS=hypervisor1=http://localhost:14151 \
