@@ -24,6 +24,7 @@ def main(ctx):
         "commands": ["make web/dist"]
       })
       pl["steps"].extend(build(ctx, os, arch))
+
       # prepare release with each arch
       # drone multiple pipelines can't share directories
       pl["steps"].extend([
@@ -43,8 +44,7 @@ def main(ctx):
           "image": "plugins/github-release",
           "settings": {
             "api_key": {"from_secret": "github_api_key"},
-            "files": "release/*",
-            "checksum": ["sha256"]
+            "files": "release/*"
           },
           "when": {"event": "tag"}
         }
@@ -59,16 +59,25 @@ def main(ctx):
     "depends_on": ["default-%s-%s" % (os, arch) for os in OS_LIST for arch in ARCH_LIST],
     "steps": []
   }
+
+  collect_releases = {
+    "name": "make release",
+    "image": "alpine",
+    "commands": [
+      "mkdir -p release",
+      "cp script/install.sh release",
+      "cp script/uninstall.sh release"
+    ],
+    "when": {"event": "tag"}
+  }
+  # pull pre-built and uploaded binary to include hash calculation
+  for os in OS_LIST:
+    for arch in ARCH_LIST:
+      url = "https://github.com/%s/releases/download/%s/minivmm_%s_%s" % (ctx.repo.slug, TAG_PATTERN, os, arch)
+      collect_releases["commands"].append("wget -O release/minivmm_%s_%s %s" % (os, arch, url))
+  pl["steps"].append(collect_releases)
+
   pl["steps"].extend([
-    {
-      "name": "make release",
-      "image": "alpine",
-      "commands": [
-        "mkdir -p release",
-        "cp script/install.sh release",
-        "cp script/uninstall.sh release"
-      ]
-    },
     {
       "name": "github release",
       "image": "plugins/github-release",
