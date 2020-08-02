@@ -129,6 +129,20 @@ func getMachineArch() (string, error) {
 	return m, nil
 }
 
+func getMachineArchFromMetaData(metaData *VMMetaData) string {
+	if metaData.Arch != "" {
+		return metaData.Arch
+	}
+
+	arch, err := getMachineArch()
+	if err == nil {
+		return arch
+	}
+
+	log.Println(err)
+	return "x86_64"
+}
+
 func generateQemuParams(qmpSocketPath, vncSocketPath, driveFilePath, machineArch, cloudInitISOPath, vmMACAddr, vmIFName, cpu, memory string, extraVolumes []string) []string {
 	params := make([]string, 0, 32)
 
@@ -425,7 +439,7 @@ func prepareStartVM(name string, metaData *VMMetaData) ([]string, error) {
 	qmpSocketPath := getQMPSocketPath(name)
 	vncSocketPath := getVNCSocketPath(name)
 	driveFilePath := metaData.Volume
-	machineArch := metaData.Arch
+	machineArch := getMachineArchFromMetaData(metaData)
 	cloudInitISOPath := metaData.CloudInitIso
 	vmMACAddr := metaData.MacAddress
 	cpu := metaData.CPU
@@ -469,7 +483,7 @@ func StartVM(name string) (*VMMetaData, error) {
 		return nil, errors.New("Cannot start non-stopped VM")
 	}
 
-	qemuBinaryName := "qemu-system-" + metaData.Arch
+	qemuBinaryName := "qemu-system-" + getMachineArchFromMetaData(metaData)
 	qemuParams, err := prepareStartVM(name, metaData)
 	stdErr, err := qemu.LaunchCustomQemu(context.Background(), qemuBinaryName, qemuParams, nil, nil, nil)
 	if err != nil {
