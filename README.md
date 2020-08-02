@@ -83,6 +83,23 @@ This is a minimal and lightweight virtual machine manager.
 # curl -Lo - https://github.com/rsp9u/minivmm/releases/latest/download/install.sh | sh -
 ```
 
+### Standalone with Docker
+> if target device with mixed architecture (ARM big.LITTLE),
+> maybe need to add `--cpuset-cpus 0-1` to arguments.
+```
+$ sudo docker run \
+  --name minivmm --rm -itd --privileged --net host \
+  -e VMM_ORIGIN=http://localhost:14151 \
+  -e VMM_AGENTS=hypervisor1=http://localhost:14151 \
+  -e VMM_SUBNET_CIDR=192.168.200.0/24 \
+  -e VMM_NO_TLS=true \
+  -e VMM_NO_AUTH=true \
+  --mount type=bind,source=/run/netns,target=/run/netns,bind-propagation=rshared \
+  -v /sys:/sys \
+  -v $PWD/data:/opt/minivmm \
+    minivmm -ui
+```
+
 ### Update
 
 ```
