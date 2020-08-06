@@ -29,6 +29,7 @@ import util from "@/util";
 import axios from "axios";
 import FWDialog from "@/components/FWDialog";
 axios.defaults.headers.post["Content-Type"] = "application/json";
+axios.defaults.withCredentials = true;
 
 export default {
   name: "FWManager",
