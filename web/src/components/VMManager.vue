@@ -68,6 +68,7 @@ import util from "@/util";
 import cloudinit from "@/cloudinit";
 import axios from "axios";
 axios.defaults.headers.post["Content-Type"] = "application/json";
+axios.defaults.withCredentials = true;
 
 import VMMenu from "@/components/VMMenu";
 

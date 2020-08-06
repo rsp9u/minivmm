@@ -1,13 +1,12 @@
 function callAxios(axiosFunc, url, body, errMsg) {
-  let opts =  {withCredentials: true};
   if (body === null) {
-    return axiosFunc(url, opts).catch(error => {
+    return axiosFunc(url).catch(error => {
       const body = error.response.data;
       const msg = `${errMsg}: ${body.error}`;
       throw { message: msg, color: "is-danger", duration: 5000 };
     });
   } else {
-    return axiosFunc(url, body, opts).catch(error => {
+    return axiosFunc(url, body).catch(error => {
       const body = error.response.data;
       const msg = `${errMsg}: ${body.error}`;
       throw { message: msg, color: "is-danger", duration: 5000 };
