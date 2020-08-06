@@ -71,7 +71,7 @@ func server() {
 		AllowedOrigins:   minivmm.C.CorsOrigins,
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"authorization", "content-type"},
-		AllowedMethods:   []string{"GET", "POST", "DELETE", "PATCH"},
+		AllowedMethods:   []string{"GET", "POST", "DELETE", "PATCH", "OPTIONS"},
 		Debug:            false,
 	})
 	handler := c.Handler(mux)
