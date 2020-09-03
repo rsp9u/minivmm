@@ -16,6 +16,7 @@
     "pug-loader": "^2.4.0",
     "pug-plain-loader": "^1.0.0",
     "sass-loader": "^8.0.2",
+    "serialize-javascript": "^4.0.0",
     "vue": "^2.6.10",
     "vue-router": "^3.1.3"
   },
