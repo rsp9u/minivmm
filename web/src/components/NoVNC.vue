@@ -23,7 +23,8 @@ export default {
     this.$nextTick(() => {
       let el = document.getElementById("novnc");
       let url = `${util.locationOrigin()}/ws/vnc?name=${this.$route.query.name}`.replace(/^http/, "ws");
-      this.rfb = new RFB(el, url)
+      let opts = {wsProtocols: ["binary"]};
+      this.rfb = new RFB(el, url, opts);
     });
   }
 }
