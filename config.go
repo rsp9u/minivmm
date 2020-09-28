@@ -12,7 +12,8 @@ type Config struct {
 	Port              int      `env:"VMM_LISTEN_PORT" envDefault:"14151"`
 	Origin            string   `env:"VMM_ORIGIN,required"`
 	OIDC              string   `env:"VMM_OIDC_URL"`
-	Agents            []string `env:"VMM_AGENTS" envSeparator:","`
+	StaticAgents      []string `env:"VMM_AGENTS" envSeparator:","`
+	NoAgentsDiscover  bool     `env:"VMM_NO_AGENTS_DISCOVER" envDefault:"false"`
 	CorsOrigins       []string `env:"VMM_CORS_ALLOWED_ORIGINS" envSeparator:","`
 	SubnetCIDR        string   `env:"VMM_SUBNET_CIDR"`
 	NameServers       []string `env:"VMM_NAME_SERVERS" envDefault:"1.1.1.1,1.0.0.1" envSeparator:","`
@@ -26,6 +27,7 @@ type Config struct {
 	VMDir      string
 	ImageDir   string
 	ForwardDir string
+	Agents     AgentLister
 }
 
 // C is a global configuration object.
@@ -40,6 +42,15 @@ func ParseConfig() error {
 	c.VMDir = filepath.Join(c.Dir, "vms")
 	c.ImageDir = filepath.Join(c.Dir, "images")
 	c.ForwardDir = filepath.Join(c.Dir, "forwards")
+
+	c.Agents = &StaticAgentLister{}
+	if !c.NoAgentsDiscover {
+        l, err := NewZeroconfAgentLister(c.Origin, c.Port)
+        if err != nil {
+            return err
+        }
+        c.Agents = l
+	}
 
 	C = &c
 	return nil
