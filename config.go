@@ -45,11 +45,11 @@ func ParseConfig() error {
 
 	c.Agents = &StaticAgentLister{}
 	if !c.NoAgentsDiscover {
-        l, err := NewZeroconfAgentLister(c.Origin, c.Port)
-        if err != nil {
-            return err
-        }
-        c.Agents = l
+		l, err := NewZeroconfAgentLister(c.Origin, c.Port)
+		if err != nil {
+			return err
+		}
+		c.Agents = l
 	}
 
 	C = &c
