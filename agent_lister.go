@@ -2,6 +2,7 @@ package minivmm
 
 import (
 	"context"
+	"fmt"
 	"github.com/grandcat/zeroconf"
 	"log"
 	"net/url"
@@ -23,6 +24,12 @@ func (l StaticAgentLister) GetAgents() []string {
 
 func (l StaticAgentLister) Cleanup() {}
 
+var (
+	MDnsServiceName = "_minivmm._tcp"
+	MDnsApiUrlTxt   = "api"
+	MDnsDomain      = "local."
+)
+
 type ZeroconfAgentLister struct {
 	server *zeroconf.Server
 	// agent-url to last-seen-time map
@@ -34,9 +41,10 @@ func NewZeroconfAgentLister(originUrl string, port int) (*ZeroconfAgentLister, e
 	if err != nil {
 		return nil, err
 	}
-	hostname, _ := os.Hostname()
 
-	server, err := zeroconf.Register(origin.Host, "_minivmm._tcp", "local.", port, []string{"api=" + hostname + "=" + originUrl}, nil)
+	hostname, _ := os.Hostname()
+	apiUrlTxt := fmt.Sprintf("%s=%s=%s", MDnsApiUrlTxt, hostname, originUrl)
+	server, err := zeroconf.Register(origin.Host, MDnsServiceName, MDnsDomain, port, []string{apiUrlTxt}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +67,7 @@ func (l *ZeroconfAgentLister) refreshAgent() error {
 	go func(results <-chan *zeroconf.ServiceEntry) {
 		for entry := range results {
 			for _, txt := range entry.Text {
-				if strings.HasPrefix(txt, "api=") {
+				if strings.HasPrefix(txt, MDnsApiUrlTxt) {
 					keyval := strings.SplitN(txt, "=", 2)
 					agentUrl := keyval[1]
 					l.agentList[agentUrl] = now
@@ -71,7 +79,7 @@ func (l *ZeroconfAgentLister) refreshAgent() error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(3))
 	defer cancel()
 
-	err = resolver.Browse(ctx, "_minivmm._tcp", "local.", entries)
+	err = resolver.Browse(ctx, MDnsServiceName, MDnsDomain, entries)
 	if err != nil {
 		return err
 	}
