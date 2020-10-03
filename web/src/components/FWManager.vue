@@ -63,7 +63,7 @@ export default {
         this.clearDialog();
         return;
       }
-      const url = ep + "forwards";
+      const url = ep + "/forwards";
       const body = fw;
       const errMsg = "Failed to create new forward";
       util
@@ -84,7 +84,7 @@ export default {
 
       console.log(item);
       const ep = this.getAgentEndpoint(item.hypervisor);
-      const url = ep + "forwards";
+      const url = ep + "/forwards";
       const body = { data: item };
       const errMsg = "Failed to delete forward";
       util
@@ -109,7 +109,7 @@ export default {
       if (target.length !== 1) {
         return "";
       }
-      return target[0].api;
+      return util.trimTailingSlash(target[0].api);
     },
     getAgentIP(name) {
       const target = this.agents.filter(x => x.name === name);

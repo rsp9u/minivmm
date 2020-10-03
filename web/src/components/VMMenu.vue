@@ -160,7 +160,7 @@ export default {
       window.open(route.href, "_blank");
     },
     updateVMStatus(name, status) {
-      const url = this.endpoint + `vms/${name}`;
+      const url = this.endpoint + `/vms/${name}`;
       const body = { status: status };
       const errMsg = "Failed to change VM status";
       util
@@ -174,7 +174,7 @@ export default {
     },
     resizeVM() {
       console.log(this.item);
-      const url = this.endpoint + `vms/${this.item.name}`;
+      const url = this.endpoint + `/vms/${this.item.name}`;
       const body = this.editedResize;
       const errMsg = "Failed to resize VM";
       util
@@ -190,7 +190,7 @@ export default {
     },
     addVolume() {
       console.log(this.item);
-      const url = this.endpoint + `vms/${this.item.name}/volumes`;
+      const url = this.endpoint + `/vms/${this.item.name}/volumes`;
       const body = { size: this.addVolumeSize };
       const errMsg = "Failed to add a new volume";
       util
@@ -206,7 +206,7 @@ export default {
     },
     rmVolume(volume) {
       console.log(volume);
-      const url = this.endpoint + `vms/${this.item.name}/volumes/${volume.name}`;
+      const url = this.endpoint + `/vms/${this.item.name}/volumes/${volume.name}`;
       const errMsg = "Failed to remove a volume";
       util
         .callAxios(axios.delete, url, {}, errMsg)
@@ -235,7 +235,7 @@ export default {
       const infoMsg = `Accepted VM ${lockOrUnlock}`;
       this.$emit("push-toast", { message: infoMsg, color: "is-info" });
 
-      const url = this.endpoint + `vms/${this.item.name}`;
+      const url = this.endpoint + `/vms/${this.item.name}`;
       const body = { lock: lock };
       const errMsg = `Failed to ${lockOrUnlock} VM`;
       util
@@ -252,7 +252,7 @@ export default {
         const infoMsg = "Accepted VM deletion";
         this.$emit("push-toast", { message: infoMsg, color: "is-info" });
 
-        const url = this.endpoint + `vms/${this.item.name}`;
+        const url = this.endpoint + `/vms/${this.item.name}`;
         const errMsg = "Failed to delete VM";
         util
           .callAxios(axios.delete, url, null, errMsg)

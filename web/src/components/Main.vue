@@ -46,7 +46,7 @@ export default {
     // VM
     async getVMs(apiEndpoint) {
       try {
-        const response = await axios.get(apiEndpoint + "vms");
+        const response = await axios.get(apiEndpoint + "/vms");
         const ipUpdated = response.data.vms.map(vm =>
           vm.ip === "" ? Object.assign(vm, { ip: "requesting.." }) : vm
         );
@@ -79,7 +79,7 @@ export default {
     // Forward
     async getForwards(apiEndpoint) {
       try {
-        const response = await axios.get(apiEndpoint + "forwards");
+        const response = await axios.get(apiEndpoint + "/forwards");
         return response.data.forwards;
       } catch {
         return [];
