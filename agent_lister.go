@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/grandcat/zeroconf"
+	"log"
 	"net/url"
 	"os"
 	"strings"
@@ -64,6 +65,8 @@ func NewZeroconfAgentLister(originUrl string, port int) (*ZeroconfAgentLister, e
 
 	hostname, _ := os.Hostname()
 	apiUrlTxt := fmt.Sprintf("%s=%s=%s", MDnsApiUrlTxt, hostname, GetApiUrl(originUrl))
+	log.Printf("[zeroconf] my service text: %s\n", apiUrlTxt)
+
 	server, err := zeroconf.Register(origin.Host, MDnsServiceName, MDnsDomain, port, []string{apiUrlTxt}, nil)
 	if err != nil {
 		return nil, err
@@ -76,6 +79,8 @@ func NewZeroconfAgentLister(originUrl string, port int) (*ZeroconfAgentLister, e
 }
 
 func (l *ZeroconfAgentLister) refreshAgent() error {
+	log.Println("[zeroconf] refreshing agent list")
+
 	now := time.Now()
 
 	resolver, err := zeroconf.NewResolver(nil)
@@ -86,11 +91,13 @@ func (l *ZeroconfAgentLister) refreshAgent() error {
 	entries := make(chan *zeroconf.ServiceEntry)
 	go func(results <-chan *zeroconf.ServiceEntry) {
 		for entry := range results {
+			log.Printf("[zeroconf] here comes an entry: %v\n", entry)
 			for _, txt := range entry.Text {
 				if strings.HasPrefix(txt, MDnsApiUrlTxt) {
 					keyval := strings.SplitN(txt, "=", 2)
 					agentUrl := keyval[1]
 					l.agentList[agentUrl] = now
+					log.Printf("[zeroconf] registered an agent (name: %s, url: %s)\n", keyval[0], keyval[1])
 				}
 			}
 		}
