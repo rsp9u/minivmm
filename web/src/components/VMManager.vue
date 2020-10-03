@@ -115,7 +115,7 @@ export default {
       }
       const ep = this.getAgentEndpoint(this.editedVM.hypervisor);
       if (ep !== "") {
-        axios.get(ep + "images").then(response => (this.images = response.data.images.map(x => x.name)));
+        axios.get(ep + "/images").then(response => (this.images = response.data.images.map(x => x.name)));
       }
     },
 
@@ -133,7 +133,7 @@ export default {
         return;
       }
 
-      const url = ep + "vms";
+      const url = ep + "/vms";
       const body = this.editedVM;
       const errMsg = "Failed to create new VM";
       util
@@ -169,7 +169,7 @@ export default {
       if (target.length !== 1) {
         return "";
       }
-      return target[0].api;
+      return util.trimTailingSlash(target[0].api);
     },
 
     propagateEvent(event, eventName) {

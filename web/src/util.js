@@ -14,6 +14,10 @@ function callAxios(axiosFunc, url, body, errMsg) {
   }
 }
 
+function trimTailingSlash(url) {
+  return url.replace(/\/+$/, '');
+}
+
 function locationOrigin() {
   if (process.env.VUE_APP_LOCATION_ORIGIN !== undefined) {
     return process.env.VUE_APP_LOCATION_ORIGIN;
@@ -24,5 +28,6 @@ function locationOrigin() {
 
 export default {
   callAxios,
+  trimTailingSlash,
   locationOrigin
 };

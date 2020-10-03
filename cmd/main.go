@@ -94,6 +94,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	minivmm.Agents, err = minivmm.InitAgentLister()
+	defer minivmm.Agents.Cleanup()
 
 	flag.Parse()
 	if *initNw {

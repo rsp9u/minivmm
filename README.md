@@ -69,7 +69,6 @@ This is a minimal and lightweight virtual machine manager.
 # export VMM_OIDC_URL=https://<OIDCProvidor>:<OIDCProvidorPort>
 # export VMM_SERVER_CERT=/path/to/server.crt
 # export VMM_SERVER_KEY=/path/to/server.key
-# export VMM_AGENTS="hypervisor1=https://<hostname-other-node>/api/v1,hypervisor2=https://<hostname-other-node2>/api/v1"
 # curl -Lo - https://github.com/rsp9u/minivmm/releases/latest/download/install.sh | sh -
 ```
 
@@ -82,6 +81,10 @@ This is a minimal and lightweight virtual machine manager.
 # export VMM_CORS_ALLOWED_ORIGINS=https://<hostname-UI-installed-in>:14151
 # curl -Lo - https://github.com/rsp9u/minivmm/releases/latest/download/install.sh | sh -
 ```
+
+#### Firewall settings
+Allow to access to udp:5353 of the earch machines to pass the mDNS packets.
+- e.g. `iptables -A INPUT -p udp --dport 5353 -j ACCEPT`
 
 ### Standalone with Docker
 > if target device with mixed architecture (ARM big.LITTLE),
