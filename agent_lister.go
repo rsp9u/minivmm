@@ -35,6 +35,13 @@ func InitAgentLister() (AgentLister, error) {
 	return &StaticAgentLister{}, nil
 }
 
+func GetApiUrl(origin string) string {
+	if !strings.HasSuffix(origin, "/api/v1") {
+		return origin + "/api/v1"
+	}
+	return origin
+}
+
 type StaticAgentLister struct{}
 
 func (l StaticAgentLister) GetAgents() []string {
@@ -56,7 +63,7 @@ func NewZeroconfAgentLister(originUrl string, port int) (*ZeroconfAgentLister, e
 	}
 
 	hostname, _ := os.Hostname()
-	apiUrlTxt := fmt.Sprintf("%s=%s=%s", MDnsApiUrlTxt, hostname, originUrl)
+	apiUrlTxt := fmt.Sprintf("%s=%s=%s", MDnsApiUrlTxt, hostname, GetApiUrl(originUrl))
 	server, err := zeroconf.Register(origin.Host, MDnsServiceName, MDnsDomain, port, []string{apiUrlTxt}, nil)
 	if err != nil {
 		return nil, err
@@ -113,8 +120,7 @@ func (l *ZeroconfAgentLister) GetAgents() []string {
 
 	agents := make([]string, 0, len(l.agentList))
 	for key := range l.agentList {
-		// FIXME: origin, agentURL form unification
-		agents = append(agents, key+"/api/v1")
+		agents = append(agents, key)
 	}
 	return agents
 }

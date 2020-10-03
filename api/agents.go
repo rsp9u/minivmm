@@ -23,7 +23,7 @@ func HandleAgents(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusMethodNotAllowed)
 }
 
-// ListAgents returns a list of agent defined in environment variable.
+// ListAgents returns a list of agent defined in environment variable or mDNS-SD.
 func ListAgents(w http.ResponseWriter, r *http.Request) {
 	agents := []*agent{}
 	definedSelf := false
@@ -39,7 +39,7 @@ func ListAgents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !definedSelf {
-		api := minivmm.C.Origin + "/api/v1/"
+		api := minivmm.GetApiUrl(minivmm.C.Origin)
 		agents = append(agents, &agent{hostname, api})
 	}
 
