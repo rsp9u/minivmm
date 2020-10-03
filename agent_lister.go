@@ -4,16 +4,35 @@ import (
 	"context"
 	"fmt"
 	"github.com/grandcat/zeroconf"
-	"log"
 	"net/url"
 	"os"
 	"strings"
 	"time"
 )
 
+var (
+	MDnsServiceName       = "_minivmm._tcp"
+	MDnsApiUrlTxt         = "api"
+	MDnsDomain            = "local."
+	MDnsDiscoveryWaitTime = 3000 // ms
+	MDnsNodeTTL           = 10   // sec
+)
+var Agents AgentLister
+
 type AgentLister interface {
 	GetAgents() []string
 	Cleanup()
+}
+
+func InitAgentLister() (AgentLister, error) {
+	if !C.NoAgentsDiscover {
+		l, err := NewZeroconfAgentLister(C.Origin, C.Port)
+		if err != nil {
+			return nil, err
+		}
+		return l, nil
+	}
+	return &StaticAgentLister{}, nil
 }
 
 type StaticAgentLister struct{}
@@ -23,12 +42,6 @@ func (l StaticAgentLister) GetAgents() []string {
 }
 
 func (l StaticAgentLister) Cleanup() {}
-
-var (
-	MDnsServiceName = "_minivmm._tcp"
-	MDnsApiUrlTxt   = "api"
-	MDnsDomain      = "local."
-)
 
 type ZeroconfAgentLister struct {
 	server *zeroconf.Server
@@ -76,7 +89,7 @@ func (l *ZeroconfAgentLister) refreshAgent() error {
 		}
 	}(entries)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(3))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(MDnsDiscoveryWaitTime))
 	defer cancel()
 
 	err = resolver.Browse(ctx, MDnsServiceName, MDnsDomain, entries)
@@ -87,7 +100,7 @@ func (l *ZeroconfAgentLister) refreshAgent() error {
 
 	// cleanup old agents
 	for agentUrl, lastSeen := range l.agentList {
-		if now.Sub(lastSeen).Seconds() > 10 {
+		if int(now.Sub(lastSeen).Seconds()) > MDnsNodeTTL {
 			delete(l.agentList, agentUrl)
 		}
 	}
@@ -107,6 +120,5 @@ func (l *ZeroconfAgentLister) GetAgents() []string {
 }
 
 func (l ZeroconfAgentLister) Cleanup() {
-	log.Println("Cleanup")
 	l.server.Shutdown()
 }

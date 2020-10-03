@@ -29,7 +29,7 @@ func ListAgents(w http.ResponseWriter, r *http.Request) {
 	definedSelf := false
 
 	hostname, _ := os.Hostname()
-	for _, a := range minivmm.C.Agents.GetAgents() {
+	for _, a := range minivmm.Agents.GetAgents() {
 		name := strings.Split(a, "=")[0]
 		api := strings.Split(a, "=")[1]
 		agents = append(agents, &agent{name, api})

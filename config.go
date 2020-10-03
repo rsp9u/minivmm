@@ -27,7 +27,6 @@ type Config struct {
 	VMDir      string
 	ImageDir   string
 	ForwardDir string
-	Agents     AgentLister
 }
 
 // C is a global configuration object.
@@ -42,15 +41,6 @@ func ParseConfig() error {
 	c.VMDir = filepath.Join(c.Dir, "vms")
 	c.ImageDir = filepath.Join(c.Dir, "images")
 	c.ForwardDir = filepath.Join(c.Dir, "forwards")
-
-	c.Agents = &StaticAgentLister{}
-	if !c.NoAgentsDiscover {
-		l, err := NewZeroconfAgentLister(c.Origin, c.Port)
-		if err != nil {
-			return err
-		}
-		c.Agents = l
-	}
 
 	C = &c
 	return nil
