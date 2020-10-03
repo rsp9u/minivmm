@@ -118,22 +118,23 @@ If you'd like to change environment variables, edit `$VMM_DIR/minivmm.environmen
 # systemctl restart minivmm.service
 ```
 
-| Name                     | Default            | Description                                                         |
-|--------------------------|--------------------|---------------------------------------------------------------------|
-| VMM_DIR                  | '/opt/minivmm'     | base directory path to store data files                             |
-| VMM_LISTEN_PORT          | '14151'            | listen port                                                         |
-| VMM_ORIGIN               |                    | origin url of minivmm server                                        |
-| VMM_OIDC_URL             |                    | oidc auth url                                                       |
-| VMM_AGENTS               |                    | agents' API endpoint (comma separated)                              |
-| VMM_CORS_ALLOWED_ORIGINS |                    | allowed origin urls (comma separated)                               |
-| VMM_SUBNET_CIDR          | '192.168.200.0/24' | subnet CIDR for the network containing VMs                          |
-| VMM_NAME_SERVERS         | '1.1.1.1,1.0.0.1'  | domain name servers' address sent via DHCP server (comma separated) |
-| VMM_SERVER_CERT          |                    | path to the server certificate file                                 |
-| VMM_SERVER_KEY           |                    | path to the server private key file                                 |
-| VMM_NO_TLS               | 'false'            | disable tls if set "true"                                           |
-| VMM_NO_AUTH              | 'false'            | skip API authentication if set "true"                               |
-| VMM_NO_KVM               | 'false'            | disable kvm if set "true"                                           |
-| VMM_VNC_KEYBOARD_LAYOUT  | 'en-us'            | keyboard layout language for VNC                                    |
+| Name                     | Default            | Description                                                                            |
+|--------------------------|--------------------|----------------------------------------------------------------------------------------|
+| VMM_DIR                  | '/opt/minivmm'     | base directory path to store data files                                                |
+| VMM_LISTEN_PORT          | '14151'            | listen port                                                                            |
+| VMM_ORIGIN               |                    | origin url of minivmm server                                                           |
+| VMM_OIDC_URL             |                    | oidc auth url                                                                          |
+| VMM_AGENTS               |                    | agents' API endpoint (comma separated), it works only if VMM_NO_AGENTS_DISCOVER="true" |
+| VMM_CORS_ALLOWED_ORIGINS |                    | allowed origin urls (comma separated)                                                  |
+| VMM_SUBNET_CIDR          | '192.168.200.0/24' | subnet CIDR for the network containing VMs                                             |
+| VMM_NAME_SERVERS         | '1.1.1.1,1.0.0.1'  | domain name servers' address sent via DHCP server (comma separated)                    |
+| VMM_SERVER_CERT          |                    | path to the server certificate file                                                    |
+| VMM_SERVER_KEY           |                    | path to the server private key file                                                    |
+| VMM_NO_TLS               | 'false'            | disable tls if set "true"                                                              |
+| VMM_NO_AUTH              | 'false'            | skip API authentication if set "true"                                                  |
+| VMM_NO_KVM               | 'false'            | disable kvm if set "true"                                                              |
+| VMM_NO_AGENTS_DISCOVER   | 'false'            | disable mDNS-ServiceDiscovery and use VMM_AGENTS                                       |
+| VMM_VNC_KEYBOARD_LAYOUT  | 'en-us'            | keyboard layout language for VNC                                                       |
 
 ## Installer environments
 
