@@ -118,15 +118,15 @@ func getMachineArch() (string, error) {
 		return "", err
 	}
 
-	var m string
-	for _, val := range u.Machine {
-		if int(val) == 0 {
+	buf := make([]byte, 0, len(u.Machine))
+	for _, c := range u.Machine {
+		if int(c) == 0 {
 			continue
 		}
-		m += string(int(val))
+		buf = append(buf, byte(c))
 	}
 
-	return m, nil
+	return string(buf), nil
 }
 
 func getMachineArchFromMetaData(metaData *VMMetaData) string {

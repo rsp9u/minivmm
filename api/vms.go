@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"minivmm"
 )
@@ -115,15 +116,12 @@ func ListVMs(w http.ResponseWriter, r *http.Request) {
 
 // CreateVM creates VM and writes its metadata.
 func CreateVM(w http.ResponseWriter, r *http.Request) {
-	body := r.Body
-	defer body.Close()
-
-	buf := new(bytes.Buffer)
-	io.Copy(buf, body)
-
-	var v vm
-	json.Unmarshal(buf.Bytes(), &v)
-	fmt.Printf("%v\n", v)
+	defer r.Body.Close()
+	v, err := parseVMFromJson(r.Body)
+	if err != nil {
+		writeInternalServerError(err, w)
+		return
+	}
 
 	metaData, err := minivmm.CreateVM(v.Name, minivmm.GetUserName(r), v.Image, v.CPU, v.Memory, v.Disk, v.UserData, v.Tag)
 	if err != nil {
@@ -145,15 +143,12 @@ func UpdateVM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body := r.Body
-	defer body.Close()
-
-	buf := new(bytes.Buffer)
-	io.Copy(buf, body)
-
-	var v vm
-	json.Unmarshal(buf.Bytes(), &v)
-	fmt.Printf("%v\n", v)
+	defer r.Body.Close()
+	v, err := parseVMFromJson(r.Body)
+	if err != nil {
+		writeInternalServerError(err, w)
+		return
+	}
 
 	if v.Status != "" {
 		if v.Status == "start" {
@@ -168,7 +163,7 @@ func UpdateVM(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if v.CPU != "" || v.Memory != "" || v.Disk != "" {
-		metaData, err := resizeVM(vmName, &v)
+		metaData, err := resizeVM(vmName, v)
 		if err != nil {
 			writeInternalServerError(err, w)
 			return
@@ -268,15 +263,13 @@ func CreateVolume(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer r.Body.Close()
+	volSize, err := parseExtraVolumeSize(r.Body)
+	if err != nil {
+		writeInternalServerError(err, w)
+		return
+	}
 
-	buf := new(bytes.Buffer)
-	io.Copy(buf, r.Body)
-
-	var ev extraVolume
-	json.Unmarshal(buf.Bytes(), &ev)
-	fmt.Printf("%v\n", ev)
-
-	metaData, err := minivmm.AddVolume(vmName, ev.Size)
+	metaData, err := minivmm.AddVolume(vmName, volSize)
 
 	if err != nil {
 		writeInternalServerError(err, w)
@@ -307,4 +300,92 @@ func DeleteVolume(w http.ResponseWriter, r *http.Request) {
 
 	b, _ := json.Marshal(metaData)
 	w.Write(b)
+}
+
+func parseVMFromJson(r io.ReadCloser) (*vm, error) {
+	// read and parse json
+	buf := new(bytes.Buffer)
+	io.Copy(buf, r)
+
+	var v vm
+	err := json.Unmarshal(buf.Bytes(), &v)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("%v\n", v)
+
+	// sanitize
+	err = rfc1035Label(v.Name)
+	if err != nil {
+		return nil, err
+	}
+	err = numeric(v.CPU, "cpu")
+	if err != nil {
+		return nil, err
+	}
+	err = alphanumeric(v.Memory, "memory")
+	if err != nil {
+		return nil, err
+	}
+	err = alphanumeric(v.Disk, "disk")
+	if err != nil {
+		return nil, err
+	}
+
+	return &v, nil
+}
+
+func parseExtraVolumeSize(r io.ReadCloser) (string, error) {
+	// read and parse json
+	buf := new(bytes.Buffer)
+	io.Copy(buf, r)
+
+	var ev extraVolume
+	err := json.Unmarshal(buf.Bytes(), &ev)
+	if err != nil {
+		return "", err
+	}
+	fmt.Printf("%v\n", ev)
+
+	return ev.Size, nil
+}
+
+func rfc1035Label(label string) error {
+	errmsg := "name contains alphanumeric or hyphen, and must begin with a letter"
+	for i, c := range label {
+		if c > unicode.MaxASCII {
+			return fmt.Errorf(errmsg)
+		}
+		if i == 0 && !unicode.IsLetter(c) {
+			return fmt.Errorf(errmsg)
+		}
+		if !unicode.IsLetter(c) && !unicode.IsDigit(c) && c != '-' {
+			return fmt.Errorf(errmsg)
+		}
+	}
+	return nil
+}
+
+func alphanumeric(s, kind string) error {
+	errmsg := fmt.Sprintf("%s contains alphanumeric characters", kind)
+	for i, c := range s {
+		if c > unicode.MaxASCII {
+			return fmt.Errorf(errmsg)
+		}
+		if !unicode.IsLetter(c) && !unicode.IsDigit(c) {
+			return fmt.Errorf(errmsg)
+		}
+	}
+}
+
+func numeric(s, kind string) error {
+	errmsg := fmt.Sprintf("%s contains numeric characters", kind)
+	for i, c := range s {
+		if c > unicode.MaxASCII {
+			return fmt.Errorf(errmsg)
+		}
+		if !unicode.IsDigit(c) {
+			return fmt.Errorf(errmsg)
+		}
+	}
 }
