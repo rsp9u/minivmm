@@ -62,7 +62,6 @@ type VMMetaData struct {
 	Tag          string        `json:"tag"`
 	Lock         bool          `json:"lock"`
 	VNCPassword  string        `json:"vnc_password"`
-	VNCPort      string        `json:"vnc_port"`
 	UserData     string        `json:"user_data"`
 	CloudInitIso string        `json:"cloud_init_iso"`
 	ExtraVolumes []ExtraVolume `json:"extra_volumes"`
@@ -246,29 +245,10 @@ func generateRandomPassword() (string, error) {
 	return base64.URLEncoding.EncodeToString(b), err
 }
 
-// GetVncPort returns VNC port number of the specified VM.
-func GetVncPort(name string) (string, error) {
-	q, _, err := initQMP(getQMPSocketPath(name))
-	if err != nil {
-		return "", errors.Wrap(err, "QMP connection failed")
-	}
-	defer q.Shutdown()
-
-	r, err := q.ExecuteRawCommand(context.Background(), "query-vnc", map[string]interface{}{}, nil)
-	if err != nil {
-		return "", errors.Wrap(err, "query-vnc command failed")
-	}
-	m, ok := r.(map[string]interface{})
-	if !ok {
-		return "", errors.New("could not parse query-vnc command response")
-	}
-	port, ok := m["service"].(string)
-	if !ok {
-		return "", errors.New("could not parse query-vnc command response")
-	}
-
-	return port, nil
-}
+// NOTE: QMP command 'query-vnc' can only return a path of the unix domain socket
+// as a string of up to 31 chars (maybe bug), so removed this function.
+// func GetVncPort(name string) (string, error) {
+// }
 
 func saveVMMetaData(name string, metaData *VMMetaData) error {
 	metaDataByte, err := json.Marshal(metaData)
@@ -384,7 +364,6 @@ func CreateVM(name, owner, imageName, cpu, memory, disk, userData, tag string) (
 		Tag:          tag,
 		Lock:         false,
 		VNCPassword:  password,
-		VNCPort:      "",
 		UserData:     userData,
 		CloudInitIso: isoFilePath,
 	}
@@ -490,12 +469,6 @@ func StartVM(name string) (*VMMetaData, error) {
 		log.Println(stdErr)
 		return nil, errors.Wrap(err, "StartVM: VM launch failed")
 	}
-
-	port, err := GetVncPort(name)
-	if err != nil {
-		return nil, err
-	}
-	metaData.VNCPort = port
 
 	return metaData, nil
 }
