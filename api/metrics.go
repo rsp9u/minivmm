@@ -6,7 +6,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"minivmm"
+	"minivmm/metrics/resource"
 )
 
 const promNamespace = "minivmm"
@@ -62,7 +62,7 @@ func (e minivmmExporter) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (e *minivmmExporter) Collect(ch chan<- prometheus.Metric) {
-	m, err := minivmm.GetMetric()
+	m, err := resource.GetVMMetric()
 	if err != nil {
 		log.Printf("failed to get metrics; %v", err)
 		return

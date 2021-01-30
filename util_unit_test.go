@@ -20,26 +20,26 @@ func TestConvertSIPrefixedValue(t *testing.T) {
 	testConvertSIPrefixedValue(t, "1G", "", "1073741824")
 
 	var err error
-	_, err = convertSIPrefixedValue("10H", "")
+	_, err = ConvertSIPrefixedValue("10H", "")
 	if err == nil {
 		t.Errorf("expected error but it does not occur")
 	}
-	_, err = convertSIPrefixedValue("10GB", "")
+	_, err = ConvertSIPrefixedValue("10GB", "")
 	if err == nil {
 		t.Errorf("expected error but it does not occur")
 	}
-	_, err = convertSIPrefixedValue("NOTHING", "")
+	_, err = ConvertSIPrefixedValue("NOTHING", "")
 	if err == nil {
 		t.Errorf("expected error but it does not occur")
 	}
-	_, err = convertSIPrefixedValue("1234-NOTHING", "")
+	_, err = ConvertSIPrefixedValue("1234-NOTHING", "")
 	if err == nil {
 		t.Errorf("expected error but it does not occur")
 	}
 }
 
 func testConvertSIPrefixedValue(t *testing.T, value, destUnit, expected string) {
-	actual, err := convertSIPrefixedValue(value, destUnit)
+	actual, err := ConvertSIPrefixedValue(value, destUnit)
 	if err != nil {
 		t.Errorf("convert error: %v", err)
 	}
