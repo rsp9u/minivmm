@@ -62,33 +62,33 @@ func ensureDir() error {
 
 func gzipMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		for _, encoding := range strings.Split(r.Header.Get("Accept-Encoding"), ",") {
+			if strings.TrimSpace(encoding) == "gzip" {
+				break
+			}
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		rec := httptest.NewRecorder()
 		next.ServeHTTP(rec, r)
 
-		code := rec.Result().StatusCode
-		body := rec.Result().Body
-		ct := rec.Result().Header.Get("Content-Type")
+		var b bytes.Buffer
+		gw := gzip.NewWriter(&b)
+		io.Copy(gw, rec.Result().Body)
+		gw.Flush()
+		gw.Close()
 
 		for k, values := range rec.Result().Header {
 			for _, v := range values {
 				w.Header().Add(k, v)
 			}
 		}
-
-		if code == http.StatusOK && (strings.HasPrefix(ct, "application/javascript") || strings.HasPrefix(ct, "text/css")) {
-			var b bytes.Buffer
-			gw := gzip.NewWriter(&b)
-			io.Copy(gw, body)
-			gw.Flush()
-			gw.Close()
-
-			w.Header().Set("Content-Encoding", "gzip")
-			w.Header().Set("Content-Length", strconv.Itoa(b.Len()))
-			w.WriteHeader(code)
-			io.Copy(w, &b)
-		} else {
-			io.Copy(w, body)
-		}
+		w.Header().Add("Vary", "Accept-Encoding")
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Set("Content-Length", strconv.Itoa(b.Len()))
+		w.WriteHeader(rec.Result().StatusCode)
+		io.Copy(w, &b)
 	})
 }
 
