@@ -7,7 +7,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"minivmm/metrics/resource"
+	"minivmm"
 )
 
 const promNamespace = "minivmm"
@@ -63,7 +63,7 @@ func (e minivmmExporter) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (e *minivmmExporter) Collect(ch chan<- prometheus.Metric) {
-	m, err := resource.GetVMMetric()
+	m, err := minivmm.GetVMMetric()
 	if err != nil {
 		log.Printf("failed to get metrics; %v", err)
 		return
@@ -89,21 +89,21 @@ func HandleJsonMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vmMetric, err := resource.GetVMMetric()
+	vmMetric, err := minivmm.GetVMMetric()
 	if err != nil {
 		writeInternalServerError(err, w)
 		return
 	}
 
-	sysMetric, err := resource.GetSysMetric()
+	sysMetric, err := minivmm.GetSysMetric()
 	if err != nil {
 		writeInternalServerError(err, w)
 		return
 	}
 
 	m := struct {
-		VM  *resource.VMMetric  `json:"vm"`
-		Sys *resource.SysMetric `json:"sys"`
+		VM  *minivmm.VMMetric  `json:"vm"`
+		Sys *minivmm.SysMetric `json:"sys"`
 	}{vmMetric, sysMetric}
 	b, _ := json.Marshal(m)
 	w.Write(b)

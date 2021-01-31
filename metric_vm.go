@@ -1,10 +1,8 @@
-package resource
+package minivmm
 
 import (
 	"log"
 	"strconv"
-
-	"minivmm"
 )
 
 // VMMetric is the metrics of resrouces that minivmm manages. It's exported for prometheus.
@@ -22,7 +20,7 @@ type VMMetric struct {
 func GetVMMetric() (*VMMetric, error) {
 	var m VMMetric
 
-	vms, err := minivmm.ListVMs()
+	vms, err := ListVMs()
 	if err != nil {
 		return nil, err
 	}
@@ -30,8 +28,8 @@ func GetVMMetric() (*VMMetric, error) {
 	m.NumVM = len(vms)
 	for _, vm := range vms {
 		cpuStr := vm.CPU
-		memStr, _ := minivmm.ConvertSIPrefixedValue(vm.Memory, "")
-		diskStr, _ := minivmm.ConvertSIPrefixedValue(vm.Disk, "")
+		memStr, _ := ConvertSIPrefixedValue(vm.Memory, "")
+		diskStr, _ := ConvertSIPrefixedValue(vm.Disk, "")
 
 		cpu, err := strconv.Atoi(cpuStr)
 		if err != nil {

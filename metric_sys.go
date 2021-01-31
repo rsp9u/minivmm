@@ -1,9 +1,9 @@
-package resource
+package minivmm
 
 import (
 	"github.com/mackerelio/go-osstat/cpu"
 	"github.com/mackerelio/go-osstat/memory"
-	"minivmm"
+	"golang.org/x/sys/unix"
 )
 
 // SysMetric is the metrics of system resrouces.
@@ -32,8 +32,22 @@ func GetSysMetric() (*SysMetric, error) {
 	m.MemoryBytes = memory.Total
 	m.MemoryBytesUsed = memory.Used
 
-	m.DiskBytes = getDiskSizeTotal(minivmm.C.Dir)
-	m.DiskBytesUsed = getDiskSizeUsed(minivmm.C.Dir)
+	m.DiskBytes = getDiskSizeTotal(C.Dir)
+	m.DiskBytesUsed = getDiskSizeUsed(C.Dir)
 
 	return &m, nil
+}
+
+func getDiskSizeTotal(path string) uint64 {
+	var stat unix.Statfs_t
+	unix.Statfs(path, &stat)
+
+	return stat.Blocks * uint64(stat.Bsize)
+}
+
+func getDiskSizeUsed(path string) uint64 {
+	var stat unix.Statfs_t
+	unix.Statfs(path, &stat)
+
+	return (stat.Blocks - stat.Bavail) * uint64(stat.Bsize)
 }
