@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -62,7 +63,7 @@ func (e minivmmExporter) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (e *minivmmExporter) Collect(ch chan<- prometheus.Metric) {
-	m, err := minivmm.GetMetric()
+	m, err := minivmm.GetVMMetric()
 	if err != nil {
 		log.Printf("failed to get metrics; %v", err)
 		return
@@ -79,6 +80,33 @@ func (e *minivmmExporter) Collect(ch chan<- prometheus.Metric) {
 	e.memBytes.Collect(ch)
 	ch <- prometheus.MustNewConstMetric(e.diskBytes.Desc(), prometheus.GaugeValue, float64(m.DiskBytes))
 	e.numVM.Collect(ch)
+}
+
+// HandleJsonMetrics handles json metrics request.
+func HandleJsonMetrics(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	vmMetric, err := minivmm.GetVMMetric()
+	if err != nil {
+		writeInternalServerError(err, w)
+		return
+	}
+
+	sysMetric, err := minivmm.GetSysMetric()
+	if err != nil {
+		writeInternalServerError(err, w)
+		return
+	}
+
+	m := struct {
+		VM  *minivmm.VMMetric  `json:"vm"`
+		Sys *minivmm.SysMetric `json:"sys"`
+	}{vmMetric, sysMetric}
+	b, _ := json.Marshal(m)
+	w.Write(b)
 }
 
 // GetMetricsHandler returns the prometheus metrics handler.

@@ -14,6 +14,7 @@ func RegisterHandlers(mux *http.ServeMux) {
 	registerWithAuth(mux, prefix+"/vms/", HandleVMs)
 	registerWithAuth(mux, prefix+"/forwards", HandleForwards)
 	registerWithAuth(mux, prefix+"/images", HandleImages)
+	registerWithAuth(mux, prefix+"/metrics/json", HandleJsonMetrics)
 
 	mux.HandleFunc(prefix+"/login", HandleOIDCCallback)
 

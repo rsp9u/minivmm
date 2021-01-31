@@ -5,8 +5,8 @@ import (
 	"strconv"
 )
 
-// Metric is the metrics of resrouces that minivmm manages. It's exported for prometheus.
-type Metric struct {
+// VMMetric is the metrics of resrouces that minivmm manages. It's exported for prometheus.
+type VMMetric struct {
 	CPUCores           int `json:"minivmm_cpu_cores"`
 	CPUCoresRunning    int `json:"minivmm_cpu_cores_running"`
 	MemoryBytes        int `json:"minivmm_memory_bytes"`
@@ -16,8 +16,9 @@ type Metric struct {
 	NumVMRunning       int `json:"minivmm_vms_running"`
 }
 
-func GetMetric() (*Metric, error) {
-	var m Metric
+// GetVMMetric returns the resource metrics of the VMs managed by minivmm .
+func GetVMMetric() (*VMMetric, error) {
+	var m VMMetric
 
 	vms, err := ListVMs()
 	if err != nil {
@@ -27,8 +28,8 @@ func GetMetric() (*Metric, error) {
 	m.NumVM = len(vms)
 	for _, vm := range vms {
 		cpuStr := vm.CPU
-		memStr, _ := convertSIPrefixedValue(vm.Memory, "")
-		diskStr, _ := convertSIPrefixedValue(vm.Disk, "")
+		memStr, _ := ConvertSIPrefixedValue(vm.Memory, "")
+		diskStr, _ := ConvertSIPrefixedValue(vm.Disk, "")
 
 		cpu, err := strconv.Atoi(cpuStr)
 		if err != nil {

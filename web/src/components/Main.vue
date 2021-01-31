@@ -1,5 +1,6 @@
 <template lang="pug">
   #minivmm_main
+    ResourceGraph(ref="res" :resources="resources")
     VMManager(ref="vmm" :agents="agents" :vms="vms" @push-toast="toast" @update-vms="getAllVMs" @add-forward="addForwardFromVMManager" @delete-vm="deleteForwardByVMDeletion")
     FWManager(ref="fwm" :agents="agents" :fws="fws" :vms="vms" @push-toast="toast" @update-forwards="getAllForwards")
 </template>
@@ -10,16 +11,19 @@ import axios from "axios";
 
 import VMManager from "@/components/VMManager";
 import FWManager from "@/components/FWManager";
+import ResourceGraph from "@/components/ResourceGraph";
 
 export default {
   name: "minivm-main",
   components: {
+    ResourceGraph,
     VMManager,
     FWManager
   },
   data() {
     return {
       agents: [],
+      resources: [],
       vms: [],
       fws: [],
       intervalIds: []
@@ -27,6 +31,7 @@ export default {
   },
   created() {
     this.getAgents().then(() => {
+      this.getAllResources();
       this.getAllVMs();
       this.getAllForwards();
     });
@@ -42,6 +47,26 @@ export default {
         util.locationOrigin() + "/api/v1/agents"
       );
       this.agents = response.data.agents;
+    },
+    // Resource
+    async getAllResources() {
+      let resources = [];
+      for (let agent of this.agents) {
+        const ret = await this.getResource(agent.name, agent.api);
+        resources.push(ret);
+      }
+      if (this.diffArray(this.resources, resources)) {
+        resources.sort();
+        this.resources = resources;
+      }
+    },
+    async getResource(name, apiEndpoint) {
+      try {
+        const response = await axios.get(apiEndpoint + "/metrics/json");
+        return {"name": name, "res": response.data};
+      } catch {
+        return {"name": name, "res": null};
+      }
     },
     // VM
     async getVMs(apiEndpoint) {
@@ -61,14 +86,9 @@ export default {
         const ret = await this.getVMs(agent.api);
         vms.push(...ret);
       }
-      if (this.diffVMs(this.vms, vms)) {
+      if (this.diffArray(this.vms, vms)) {
         this.vms = vms;
       }
-    },
-    diffVMs(prevVMs, currVMs) {
-      prevVMs.sort();
-      currVMs.sort();
-      return JSON.stringify(prevVMs) !== JSON.stringify(currVMs);
     },
     addForwardFromVMManager(fw) {
       this.$refs.fwm.createFw(fw);
@@ -91,17 +111,19 @@ export default {
         const ret = await this.getForwards(agent.api);
         fws.push(...ret);
       }
-      if (this.diffForwards(this.fws, fws)) {
+      if (this.diffArray(this.fws, fws)) {
         this.fws = fws;
       }
     },
-    diffForwards(prevFws, currFws) {
-      prevFws.sort();
-      currFws.sort();
-      return JSON.stringify(prevFws) !== JSON.stringify(currFws);
+    // Common
+    diffArray(prev, curr) {
+      prev.sort();
+      curr.sort();
+      return JSON.stringify(prev) !== JSON.stringify(curr);
     },
     // Polling
     setPoll() {
+      this.intervalIds.push(setInterval(this.getAllResources, 5000));
       this.intervalIds.push(setInterval(this.getAllVMs, 5000));
       this.intervalIds.push(setInterval(this.getAllForwards, 5000));
     },

@@ -422,7 +422,7 @@ func prepareStartVM(name string, metaData *VMMetaData) ([]string, error) {
 	cloudInitISOPath := metaData.CloudInitIso
 	vmMACAddr := metaData.MacAddress
 	cpu := metaData.CPU
-	memory, err := convertSIPrefixedValue(metaData.Memory, "mebi")
+	memory, err := ConvertSIPrefixedValue(metaData.Memory, "mebi")
 	if err != nil {
 		return nil, err
 	}

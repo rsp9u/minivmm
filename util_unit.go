@@ -9,7 +9,9 @@ import (
 
 var validValue = regexp.MustCompile(`^([0-9]+)([KMGTP]?)(.*)$`)
 
-func convertSIPrefixedValue(prefixedValue string, destUnit string) (string, error) {
+// ConvertSIPrefixedValue converts a value with or without SI prefixes.
+// This function calculates with 2^10N (such as Kibi, Mebi) not 10^3N.
+func ConvertSIPrefixedValue(prefixedValue string, destUnit string) (string, error) {
 	match := validValue.FindStringSubmatch(prefixedValue)
 	if len(match) == 0 || len(match[3]) != 0 {
 		return "", errors.New("Invalid SI prefixed value")
