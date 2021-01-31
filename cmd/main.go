@@ -1,12 +1,18 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/rakyll/statik/fs"
 	"github.com/rs/cors"
@@ -54,13 +60,40 @@ func ensureDir() error {
 	return nil
 }
 
+func gzipMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rec := httptest.NewRecorder()
+		next.ServeHTTP(rec, r)
+
+		code := rec.Result().StatusCode
+		body := rec.Result().Body
+		ct := rec.Result().Header.Get("Content-Type")
+		w.Header().Set("Content-Type", ct)
+
+		if code == http.StatusOK && (strings.HasPrefix(ct, "application/javascript") || strings.HasPrefix(ct, "text/css")) {
+			var b bytes.Buffer
+			gw := gzip.NewWriter(&b)
+			n, _ := io.Copy(gw, body)
+			gw.Flush()
+			gw.Close()
+
+			w.Header().Set("Content-Encoding", "gzip")
+			w.Header().Set("Content-Length", strconv.FormatInt(n, 10))
+			w.WriteHeader(code)
+			io.Copy(w, &b)
+		} else {
+			io.Copy(w, body)
+		}
+	})
+}
+
 func server() {
 	mux := http.NewServeMux()
 	if *ui {
 		log.Println("Into ui mode..")
 		fs, _ := fs.New()
 		defaultedFileSystem := DefaultedFileSystem{fs: fs, DefaultPath: "/index.html"}
-		mux.Handle("/", api.AuthMiddleware(http.StripPrefix("/", http.FileServer(defaultedFileSystem))))
+		mux.Handle("/", api.AuthMiddleware(gzipMiddleware(http.StripPrefix("/", http.FileServer(defaultedFileSystem)))))
 	} else {
 		log.Println("Into non-ui mode..")
 	}
