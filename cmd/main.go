@@ -68,17 +68,22 @@ func gzipMiddleware(next http.Handler) http.Handler {
 		code := rec.Result().StatusCode
 		body := rec.Result().Body
 		ct := rec.Result().Header.Get("Content-Type")
-		w.Header().Set("Content-Type", ct)
+
+		for k, values := range rec.Result().Header {
+			for _, v := range values {
+				w.Header().Add(k, v)
+			}
+		}
 
 		if code == http.StatusOK && (strings.HasPrefix(ct, "application/javascript") || strings.HasPrefix(ct, "text/css")) {
 			var b bytes.Buffer
 			gw := gzip.NewWriter(&b)
-			n, _ := io.Copy(gw, body)
+			io.Copy(gw, body)
 			gw.Flush()
 			gw.Close()
 
 			w.Header().Set("Content-Encoding", "gzip")
-			w.Header().Set("Content-Length", strconv.FormatInt(n, 10))
+			w.Header().Set("Content-Length", strconv.Itoa(b.Len()))
 			w.WriteHeader(code)
 			io.Copy(w, &b)
 		} else {
