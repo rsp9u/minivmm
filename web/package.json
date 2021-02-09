@@ -26,6 +26,10 @@
     "@vue/cli-service": "^4.1.0",
     "vue-template-compiler": "^2.6.10"
   },
+  "resolutions": {
+    "**/**/node-forge": "~0.10.0",
+	"**/**/highlight.js": "~10.4.1"
+  },
   "browserslist": [
     "> 1%",
     "last 2 versions"
