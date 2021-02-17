@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -324,7 +323,7 @@ func RemoveForwardFile(fw *ForwardMetaData) error {
 
 // ReadAllForwardFiles returns a list of forwarding settings.
 func ReadAllForwardFiles() ([]*ForwardMetaData, error) {
-	dirEntries, err := ioutil.ReadDir(C.ForwardDir)
+	dirEntries, err := os.ReadDir(C.ForwardDir)
 	if err != nil {
 		return nil, err
 	}
@@ -351,7 +350,7 @@ func ReadForwardFile(proto, fromPort string) (*ForwardMetaData, error) {
 
 // GetRandomForwardPort choices a random number in range and it's unused port as forward port.
 func GetRandomForwardPort(proto string, rangeMin, rangeMax int) (string, error) {
-	dirEntries, err := ioutil.ReadDir(C.ForwardDir)
+	dirEntries, err := os.ReadDir(C.ForwardDir)
 	if err != nil {
 		return "", err
 	}
@@ -402,7 +401,7 @@ func checkPortIsBindable(proto, port string) bool {
 
 func readForwardFileByFileName(fileName string) (*ForwardMetaData, error) {
 	fw := ForwardMetaData{}
-	b, err := ioutil.ReadFile(filepath.Join(C.ForwardDir, fileName))
+	b, err := os.ReadFile(filepath.Join(C.ForwardDir, fileName))
 	if err != nil {
 		return nil, err
 	}
