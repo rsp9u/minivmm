@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -278,7 +277,7 @@ func loadVMMetaData(name string) (*VMMetaData, error) {
 	metaDataPath := filepath.Join(C.VMDir, name, vmMetaDataFileName)
 	vmMetaData := VMMetaData{}
 
-	metaDataByte, err := ioutil.ReadFile(metaDataPath)
+	metaDataByte, err := os.ReadFile(metaDataPath)
 	if err != nil {
 		return nil, err
 	}
@@ -638,7 +637,7 @@ func GetVMFromMac(mac string) (*VMMetaData, error) {
 
 // ListVMs returns a list of VM metadata.
 func ListVMs() ([]*VMMetaData, error) {
-	dirEntries, err := ioutil.ReadDir(C.VMDir)
+	dirEntries, err := os.ReadDir(C.VMDir)
 	if err != nil {
 		return nil, errors.Wrap(err, "ListVMs: Cannot read vm data dir")
 	}

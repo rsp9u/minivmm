@@ -3,9 +3,11 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -14,13 +16,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rakyll/statik/fs"
 	"github.com/rs/cors"
 	"minivmm"
 	"minivmm/api"
 	"minivmm/ws"
-
-	_ "minivmm/statik"
 )
 
 var (
@@ -38,7 +37,7 @@ type DefaultedFileSystem struct {
 // Open opens the specified file. If the given file doesn't exist, it will return the default file.
 func (f DefaultedFileSystem) Open(name string) (http.File, error) {
 	file, err := f.fs.Open(name)
-	if err != nil && err == os.ErrNotExist {
+	if err != nil && errors.Is(err, fs.ErrNotExist) {
 		file, err = f.fs.Open(f.DefaultPath)
 		return file, err
 	}
@@ -96,8 +95,7 @@ func server() {
 	mux := http.NewServeMux()
 	if *ui {
 		log.Println("Into ui mode..")
-		fs, _ := fs.New()
-		defaultedFileSystem := DefaultedFileSystem{fs: fs, DefaultPath: "/index.html"}
+		defaultedFileSystem := DefaultedFileSystem{fs: http.FS(minivmm.GetAssets()), DefaultPath: "/index.html"}
 		mux.Handle("/", api.AuthMiddleware(gzipMiddleware(http.StripPrefix("/", http.FileServer(defaultedFileSystem)))))
 	} else {
 		log.Println("Into non-ui mode..")

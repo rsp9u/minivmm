@@ -2,7 +2,7 @@ package minivmm
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os/exec"
 )
 
@@ -23,7 +23,7 @@ func execs(cmds [][]string, ignoreErr bool) error {
 		if err := c.Start(); err != nil && !ignoreErr {
 			return fmt.Errorf("%v: failed to start command %v", err, cmd)
 		}
-		msg, _ := ioutil.ReadAll(stderr)
+		msg, _ := io.ReadAll(stderr)
 		if err := c.Wait(); err != nil && !ignoreErr {
 			return fmt.Errorf("%v, %v: %s", err, cmd, msg)
 		}
@@ -41,8 +41,8 @@ func ExecsStdout(cmds [][]string) ([]string, error) {
 		if err := c.Start(); err != nil {
 			return msgs, fmt.Errorf("%v: failed to start command %v", err, cmd)
 		}
-		msgStdout, _ := ioutil.ReadAll(stdout)
-		msgStderr, _ := ioutil.ReadAll(stderr)
+		msgStdout, _ := io.ReadAll(stdout)
+		msgStderr, _ := io.ReadAll(stderr)
 		if err := c.Wait(); err != nil {
 			return msgs, fmt.Errorf("%v, %v: %s", err, cmd, msgStderr)
 		}

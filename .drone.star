@@ -108,7 +108,7 @@ def build(ctx, os, arch):
   return [
     {
       "name": "build %s-%s" % (os, arch),
-      "image": "golang:1.13",
+      "image": "golang:1.16",
       "commands": [
         "GOOS=%s GOARCH=%s make" % (os, arch)
       ]
@@ -129,7 +129,7 @@ def build(ctx, os, arch):
     },
     {
       "name": "move release %s-%s" % (os, arch),
-      "image": "golang:1.13",
+      "image": "golang:1.16",
       "commands": [
         "mv bin/minivmm bin/minivmm_%s_%s" % (os, arch)
       ]
