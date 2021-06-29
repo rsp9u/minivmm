@@ -28,7 +28,11 @@
   },
   "resolutions": {
     "**/**/node-forge": "~0.10.0",
-    "**/**/highlight.js": "~10.4.1"
+    "**/**/highlight.js": "~10.4.1",
+    "**/**/is-svg": "^4.2.2",
+    "**/**/ssri": "^7.1.1",
+    "**/**/trim-newlines": "^3.0.1",
+    "**/**/glob-parent": "^5.1.2"
   },
   "browserslist": [
     "> 1%",
